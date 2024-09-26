@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.Data.Common.Infrastructure.Persistence.CosmosDb", "Dfe.Dfe.Data.Common.Infrastructure.Persistence.CosmosDb\Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.csproj", "{F89FFEB6-B394-4E05-8CF3-E810049A1584}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests", "Dfe.Dfe.Data.Common.Infrastructure.Persistence.CosmosDb\Tests\Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.csproj", "{35A9EB47-5437-4FF0-8050-9BA77A070179}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F89FFEB6-B394-4E05-8CF3-E810049A1584}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89FFEB6-B394-4E05-8CF3-E810049A1584}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F89FFEB6-B394-4E05-8CF3-E810049A1584}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F89FFEB6-B394-4E05-8CF3-E810049A1584}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35A9EB47-5437-4FF0-8050-9BA77A070179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35A9EB47-5437-4FF0-8050-9BA77A070179}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35A9EB47-5437-4FF0-8050-9BA77A070179}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35A9EB47-5437-4FF0-8050-9BA77A070179}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F54C2529-400B-4EB0-88FA-B141DBE45B36}
+	EndGlobalSection
+EndGlobal
