@@ -1,4 +1,4 @@
-﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Repositories
+﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Repositories
 {
     public sealed class ReadOnlyRepositoryTests
     {

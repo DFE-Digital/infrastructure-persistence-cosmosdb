@@ -1,4 +1,4 @@
-﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Handlers.Query;
+﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Query;
 
 public sealed class PaginatedCosmosDbQueryHandlerTests
 {

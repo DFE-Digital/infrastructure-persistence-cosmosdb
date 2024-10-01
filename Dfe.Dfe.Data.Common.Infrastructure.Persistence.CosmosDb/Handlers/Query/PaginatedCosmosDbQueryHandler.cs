@@ -41,7 +41,7 @@ public sealed class PaginatedCosmosDbQueryHandler : IPaginatedCosmosDbQueryHandl
     /// <param name="pageSize"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<TItem>> ReadPaginatedIterableItemsAsync<TItem>(
+    public async Task<IEnumerable<TItem>> ReadPaginatedItemsAsync<TItem>(
         string containerKey,
         Expression<Func<TItem, TItem>> selector,
         Expression<Func<TItem, bool>> predicate,
@@ -52,7 +52,7 @@ public sealed class PaginatedCosmosDbQueryHandler : IPaginatedCosmosDbQueryHandl
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
-        return await _cosmosDbQueryHandler.ReadIterableItemsAsync(
+        return await _cosmosDbQueryHandler.ReadItemsAsync(
             container.GetItemLinqQueryable<TItem>()
                 .Where(predicate)
                 .Select(selector)
@@ -69,7 +69,7 @@ public sealed class PaginatedCosmosDbQueryHandler : IPaginatedCosmosDbQueryHandl
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
-    public async Task<int> GetIterableItemCountAsync<TItem>(
+    public async Task<int> GetItemCountAsync<TItem>(
         string containerKey,
         Expression<Func<TItem, bool>> predicate,
         CancellationToken cancellationToken = default) where TItem : class

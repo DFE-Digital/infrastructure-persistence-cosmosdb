@@ -59,7 +59,7 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
     /// <param name="predicate"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<TItem>> ReadIterableItemsAsync<TItem>(
+    public async Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
         string containerKey,
         Expression<Func<TItem, TItem>> selector,
         Expression<Func<TItem, bool>> predicate,
@@ -69,7 +69,7 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
-        return await ReadIterableItemsAsync(
+        return await ReadItemsAsync(
             container.GetItemLinqQueryable<TItem>()
                 .Where(predicate)
                 .Select(selector)
@@ -84,7 +84,7 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
     /// <param name="query"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<TItem>> ReadIterableItemsAsync<TItem>(
+    public async Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
         string containerKey,
         string query,
         CancellationToken cancellationToken = default) where TItem : class
@@ -93,7 +93,7 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
-        return await ReadIterableItemsAsync(
+        return await ReadItemsAsync(
             container.GetItemQueryIterator<TItem>(new QueryDefinition(query)), cancellationToken);
     }
 
@@ -104,7 +104,7 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
     /// <param name="feedIterator"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<TItem>> ReadIterableItemsAsync<TItem>(
+    public async Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
         FeedIterator<TItem> feedIterator,
         CancellationToken cancellationToken = default) where TItem : class
     {

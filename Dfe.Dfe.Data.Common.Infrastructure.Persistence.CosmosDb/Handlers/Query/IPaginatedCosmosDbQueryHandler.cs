@@ -15,7 +15,7 @@ public interface IPaginatedCosmosDbQueryHandler
     /// <param name="pageSize"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IEnumerable<TItem>> ReadPaginatedIterableItemsAsync<TItem>(
+    Task<IEnumerable<TItem>> ReadPaginatedItemsAsync<TItem>(
         string containerKey,
         Expression<Func<TItem, TItem>> selector,
         Expression<Func<TItem, bool>> predicate,
@@ -30,7 +30,7 @@ public interface IPaginatedCosmosDbQueryHandler
     /// <param name="predicate"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<int> GetIterableItemCountAsync<TItem>(
+    Task<int> GetItemCountAsync<TItem>(
         string containerKey,
         Expression<Func<TItem, bool>> predicate,
         CancellationToken cancellationToken = default) where TItem : class;

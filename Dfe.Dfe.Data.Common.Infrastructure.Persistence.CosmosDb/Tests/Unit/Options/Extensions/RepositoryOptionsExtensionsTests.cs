@@ -1,4 +1,4 @@
-﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Options.Extensions;
+﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Options.Extensions;
 
 public sealed class RepositoryOptionsExtensionsTests
 {

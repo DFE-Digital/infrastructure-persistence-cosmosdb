@@ -1,4 +1,4 @@
-﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Providers;
+﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Providers;
 
 public sealed class CosmosDbClientProviderTests
 {

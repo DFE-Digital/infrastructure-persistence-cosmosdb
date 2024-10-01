@@ -31,7 +31,7 @@ public interface ICosmosDbQueryHandler
     /// <param name="query"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IEnumerable<TItem>> ReadIterableItemsAsync<TItem>(
+    Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
         string containerKey,
         string query,
         CancellationToken cancellationToken = default) where TItem : class;
@@ -45,7 +45,7 @@ public interface ICosmosDbQueryHandler
     /// <param name="predicate"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IEnumerable<TItem>> ReadIterableItemsAsync<TItem>(
+    Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
         string containerKey,
         Expression<Func<TItem, TItem>> selector,
         Expression<Func<TItem, bool>> predicate,
@@ -58,7 +58,7 @@ public interface ICosmosDbQueryHandler
     /// <param name="feedIterator"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IEnumerable<TItem>> ReadIterableItemsAsync<TItem>(
+    Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
         FeedIterator<TItem> feedIterator,
         CancellationToken cancellationToken = default) where TItem : class;
 }
