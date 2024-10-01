@@ -1,0 +1,126 @@
+name: CI/CD
+
+on:
+  pull_request: 
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  build_test_pack:
+    runs-on: ubuntu-latest
+    services:
+      cosmosdb:
+        image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+        ports:
+          - 8081:8081
+          - 10250-10255:10250-10255
+        env:
+          AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 5
+          AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: true
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.0
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine generated version number
+      id: version_step # step id used as reference for output values
+      uses: gittools/actions/gitversion/execute@v3.0.0
+
+    - name: Determine version number to use
+      run: |
+        ## Default to using the version from GitVersion
+        version=${{ steps.version_step.outputs.fullSemVer }}
+        
+        ## If this is a tag, use the version from the tag
+        if [[ ${{ github.event_name }} == 'push' && ${{ github.ref }} == 'refs/tags/v*' ]]; then
+          version=${{ github.ref_name }}
+          version=${version:1} ## Remove the leading 'v'
+        fi
+        
+        echo "Version to use: $version"
+        echo "VERSION=$version" >> $GITHUB_ENV
+        
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Install .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.x
+    - name: Install SSL certificate
+      run: |
+        retry_count=0
+        max_retry_count=10
+        until sudo curl --insecure --silent --fail --show-error "https://localhost:8081/_explorer/emulator.pem" --output "/usr/local/share/ca-certificates/cosmos-db-emulator.crt"; do
+          if [ $retry_count -eq $max_retry_count ]; then
+            echo "Failed to download certificate after $retry_count attempts."
+            exit 1
+          fi
+          echo "Failed to download certificate. Retrying in 5 seconds..."
+          sleep 5
+          retry_count=$((retry_count+1))
+        done
+        sudo update-ca-certificates
+    - name: Run .NET test
+      run: dotnet test --logger "console" --logger "trx;verbosity=detailed"
+      env:
+        COSMOSDB__CONNECTIONSTRING: "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
+
+    - name: Pack
+      run: |
+        dotnet pack --configuration Debug --output ./nupkg /p:PackageVersion=$VERSION
+
+    - name: Upload NuGet package (for use by later jobs)
+      uses: actions/upload-artifact@v4
+      with:
+        name: nupkg
+        path: ./nupkg/*.nupkg
+
+  publish:
+    ## Only attempt to publish if the build job was successful
+    needs: build_test_pack
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download NuGet package
+      uses: actions/download-artifact@v4
+      with:
+        name: nupkg
+        path: ./nupkg
+
+    ## Publish to GitHub Packages - including pre-release versions
+    - name: Publish to GitHub
+      env:
+        NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://nuget.pkg.github.com/DFE-Digital/index.json"
+
+    ## Publish to NuGet.org - only for main branch pushes
+    ##- name: Publish to NuGet.org
+    ##  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    ##  env:
+    ##    NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    ##  run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
