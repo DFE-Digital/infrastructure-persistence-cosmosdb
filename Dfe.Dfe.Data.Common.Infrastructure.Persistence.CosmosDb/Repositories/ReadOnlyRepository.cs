@@ -64,6 +64,6 @@ public sealed class ReadOnlyRepository : IReadOnlyRepository
         string query,
         string containerKey,
         CancellationToken cancellationToken = default) where TItem : class =>
-            _cosmosDbQueryHandler.ReadIterableItemsAsync<TItem>(
+            _cosmosDbQueryHandler.ReadItemsAsync<TItem>(
                 containerKey, query, cancellationToken);
 }
