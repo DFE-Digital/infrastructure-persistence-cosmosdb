@@ -1,0 +1,96 @@
+name: CI/CD
+
+on:
+  pull_request: 
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  build_test_pack:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.0
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine generated version number
+      id: version_step # step id used as reference for output values
+      uses: gittools/actions/gitversion/execute@v3.0.0
+
+    - name: Determine version number to use
+      run: |
+        ## Default to using the version from GitVersion
+        version=${{ steps.version_step.outputs.fullSemVer }}
+        
+        ## If this is a tag, use the version from the tag
+        if [[ ${{ github.event_name }} == 'push' && ${{ github.ref }} == 'refs/tags/v*' ]]; then
+          version=${{ github.ref_name }}
+          version=${version:1} ## Remove the leading 'v'
+        fi
+        
+        echo "Version to use: $version"
+        echo "VERSION=$version" >> $GITHUB_ENV
+        
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+
+    - name: Pack
+      run: |
+        dotnet pack --configuration Release --no-build --output ./nupkg /p:PackageVersion=$VERSION
+
+    - name: Upload NuGet package (for use by later jobs)
+      uses: actions/upload-artifact@v4
+      with:
+        name: nupkg
+        path: ./nupkg/*.nupkg
+
+  publish:
+    ## Only attempt to publish if the build job was successful
+    needs: build_test_pack
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download NuGet package
+      uses: actions/download-artifact@v4
+      with:
+        name: nupkg
+        path: ./nupkg
+
+    ## Publish to GitHub Packages - including pre-release versions
+    - name: Publish to GitHub
+      env:
+        NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://nuget.pkg.github.com/DFE-Digital/index.json"
+
+    ## Publish to NuGet.org - only for main branch pushes
+    ##- name: Publish to NuGet.org
+    ##  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    ##  env:
+    ##    NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    ##  run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
