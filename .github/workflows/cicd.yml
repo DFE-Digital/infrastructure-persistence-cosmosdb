@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_test_pack:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -27,6 +27,24 @@ jobs:
       uses: gittools/actions/gitversion/setup@v3.0.0
       with:
         versionSpec: '6.x'
+
+    - name: Determine generated version number
+      id: version_step # step id used as reference for output values
+      uses: gittools/actions/gitversion/execute@v3.0.0
+
+    - name: Determine version number to use
+      run: |
+        ## Default to using the version from GitVersion
+        version=${{ steps.version_step.outputs.fullSemVer }}
+        
+        ## If this is a tag, use the version from the tag
+        if [[ ${{ github.event_name }} == 'push' && ${{ github.ref }} == 'refs/tags/v*' ]]; then
+          version=${{ github.ref_name }}
+          version=${version:1} ## Remove the leading 'v'
+        fi
+        
+        echo "Version to use: $version"
+        echo "VERSION=$version" >> $GITHUB_ENV
         
     - name: Restore dependencies
       run: dotnet restore
