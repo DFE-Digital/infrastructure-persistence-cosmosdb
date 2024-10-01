@@ -60,13 +60,6 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
-
-
-
-
-
-
-
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Install .NET 8
@@ -91,15 +84,6 @@ jobs:
       run: dotnet test --logger "console" --logger "trx;verbosity=detailed"
       env:
         COSMOSDB__CONNECTIONSTRING: "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
-
-
-
-
-
-
-
-    - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal
 
     - name: Pack
       run: |
