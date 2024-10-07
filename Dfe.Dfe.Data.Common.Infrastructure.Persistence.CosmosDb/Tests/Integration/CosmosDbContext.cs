@@ -57,7 +57,7 @@ public sealed class CosmosDbContext
                 .Path("/*")
                     .Attach()
                 .Attach()
-                .CreateAsync(ThroughputProperties.CreateAutoscaleThroughput(4000));
+                .CreateAsync(containerRecords.Count);
 
             Container container = DatabaseInstance.GetContainer(containerKey);
             List<Task> createRecordTasks = new(containerRecords.Count);
