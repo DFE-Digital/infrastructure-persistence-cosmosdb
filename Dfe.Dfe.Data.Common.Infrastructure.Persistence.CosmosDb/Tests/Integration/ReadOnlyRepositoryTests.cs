@@ -23,6 +23,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration
             { "RepositoryOptions:EndpointUri", "https://localhost:8081" },
             { "RepositoryOptions:PrimaryKey", "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="},
             { "RepositoryOptions:DatabaseId", "integration-test"},
+            { "RepositoryOptions:ConnectionMode", "0"},
             { "RepositoryOptions:Containers:0:test-container:ContainerName", "test-container"},
             { "RepositoryOptions:Containers:0:test-container:PartitionKey", "/pk"},
         };
