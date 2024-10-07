@@ -2,6 +2,9 @@
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 
+/// <summary>
+/// 
+/// </summary>
 public interface IPaginatedCosmosDbQueryHandler
 {
     /// <summary>

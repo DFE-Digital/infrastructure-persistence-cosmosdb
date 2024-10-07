@@ -13,7 +13,7 @@
         /// <summary>
         /// 
         /// </summary>
-        public string pk { get; set; }
+        public string pk { get; set; } = string.Empty;
 
         /// <summary>
         /// 

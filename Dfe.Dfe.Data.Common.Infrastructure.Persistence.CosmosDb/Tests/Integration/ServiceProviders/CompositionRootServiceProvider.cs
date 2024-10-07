@@ -1,14 +1,6 @@
-﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
-using DfE.Data.ComponentLibrary.Infrastructure.Persistence.CosmosDb;
+﻿using DfE.Data.ComponentLibrary.Infrastructure.Persistence.CosmosDb;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.ServiceProviders;
 
