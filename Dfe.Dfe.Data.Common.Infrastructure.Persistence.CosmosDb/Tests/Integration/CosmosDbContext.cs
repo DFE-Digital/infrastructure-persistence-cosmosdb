@@ -69,7 +69,7 @@ public sealed class CosmosDbContext
 
             await Task.WhenAll(createRecordTasks);
         }
-        catch
+        finally
         {
             CleanUpResources();
         }
