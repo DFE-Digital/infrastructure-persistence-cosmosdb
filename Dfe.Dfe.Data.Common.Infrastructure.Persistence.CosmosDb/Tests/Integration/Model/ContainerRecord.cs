@@ -10,15 +10,15 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
     {
         [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
         [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
-        public string Id { get; set; } = string.Empty;
+        public string id { get; set; } = string.Empty;
 
         [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
         [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
-        public string Pk { get; set; } = string.Empty;
+        public string pk { get; set; } = string.Empty;
 
 
         [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
         [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
-        public string Username { get; set; } = string.Empty;
+        public string username { get; set; } = string.Empty;
     }
 }

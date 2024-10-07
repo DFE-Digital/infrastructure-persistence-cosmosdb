@@ -59,7 +59,7 @@ public sealed class CosmosDbContext
             containerRecords.ToList()
                 .ForEach(containerRecord =>
                     createRecordTasks.Add(
-                        container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.Id))));
+                        container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.id))));
 
             await Task.WhenAll(createRecordTasks);
         }

@@ -6,6 +6,6 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
     public interface IContainerRecord
     {
         [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
-        string Id { get; set; }
+        string id { get; set; }
     }
 }

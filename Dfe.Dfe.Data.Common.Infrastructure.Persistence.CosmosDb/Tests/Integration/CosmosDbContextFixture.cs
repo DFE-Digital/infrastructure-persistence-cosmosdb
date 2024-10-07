@@ -47,9 +47,9 @@ public class CosmosDbContextFixture : IDisposable
         new Bogus.Faker<ContainerRecord>()
             .StrictMode(true)
             .RuleFor(containerRecord =>
-                containerRecord.Id, _ => Guid.NewGuid().ToString())
+                containerRecord.id, _ => Guid.NewGuid().ToString())
             .RuleFor(containerRecord =>
-                containerRecord.Username, fake => fake.Internet.UserName())
-            .RuleFor(containerRecord => containerRecord.Pk, (_, containerRecord) => containerRecord.Id) //partition key
+                containerRecord.username, fake => fake.Internet.UserName())
+            .RuleFor(containerRecord => containerRecord.pk, (_, containerRecord) => containerRecord.id) //partition key
             .Generate(numberOfRecords);
 }
