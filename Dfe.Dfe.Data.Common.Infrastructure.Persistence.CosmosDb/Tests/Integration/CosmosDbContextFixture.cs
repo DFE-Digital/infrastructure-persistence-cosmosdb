@@ -1,40 +1,30 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Model;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration;
 
-/// <summary>
-/// 
-/// </summary>
+[SuppressMessage("Microsoft.Performance", "CD1600: The class must have a documentation header.")]
+[SuppressMessage("Microsoft.Performance", "ClassDocumentationHeader: The class must have a documentation header.")]
 public class CosmosDbContextFixture : IDisposable
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "ConstructorDocumentationHeader: The constructor must have a documentation header.")]
     public CosmosDbContextFixture()
     {
         Context = new CosmosDbContext();
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-
-    // To detect redundant calls
     private bool _contextDisposed;
 
-    /// <summary>
-    /// 
-    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CD1605: The method must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "MethodDocumentationHeader: The method must have a documentation header.")]
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="disposing"></param>
+    [SuppressMessage("Microsoft.Performance", "CD1605: The method must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "MethodDocumentationHeader: The method must have a documentation header.")]
     protected virtual void Dispose(bool disposing)
     {
         if (!_contextDisposed)
@@ -47,22 +37,19 @@ public class CosmosDbContextFixture : IDisposable
         }
     }
 
-    /// <summary>
-    /// /
-    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
     public CosmosDbContext Context { get; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
+    [SuppressMessage("Microsoft.Performance", "CD1605: The method must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "MethodDocumentationHeader: The method must have a documentation header.")]
     public IReadOnlyCollection<ContainerRecord> InitialiseContainerRecords(int numberOfRecords) =>
         new Bogus.Faker<ContainerRecord>()
             .StrictMode(true)
             .RuleFor(containerRecord =>
-                containerRecord.id, _ => Guid.NewGuid().ToString())
+                containerRecord.Id, _ => Guid.NewGuid().ToString())
             .RuleFor(containerRecord =>
-                containerRecord.username, fake => fake.Internet.UserName())
-            .RuleFor(containerRecord => containerRecord.pk, (_, containerRecord) => containerRecord.id) //partition key
+                containerRecord.Username, fake => fake.Internet.UserName())
+            .RuleFor(containerRecord => containerRecord.Pk, (_, containerRecord) => containerRecord.Id) //partition key
             .Generate(numberOfRecords);
 }

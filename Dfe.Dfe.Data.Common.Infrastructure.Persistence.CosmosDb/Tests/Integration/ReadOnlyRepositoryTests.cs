@@ -3,13 +3,16 @@ using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Repositories;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Configuration;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Model;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.ServiceProviders;
+using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration
 {
+    [SuppressMessage("Microsoft.Performance", "CD1600: The class must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "ClassDocumentationHeader: The class must have a documentation header.")]
     public sealed class ReadOnlyRepositoryTests :
         IClassFixture<CosmosDbContextFixture>,
         IClassFixture<CompositionRootServiceProvider>,
@@ -19,6 +22,8 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration
         private readonly IServiceProvider _compositionRootServiceProvider;
         private readonly CosmosDbContextFixture _cosmosDbContextFixture;
 
+        [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
+        [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
         private static Dictionary<string, string?> InMemoryConfiguration => new(){
             { "RepositoryOptions:EndpointUri", "https://localhost:8081" },
             { "RepositoryOptions:PrimaryKey", "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="},
@@ -28,6 +33,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration
             { "RepositoryOptions:Containers:0:test-container:PartitionKey", "/pk"},
         };
 
+        [SuppressMessage("Microsoft.Performance", "ConstructorDocumentationHeader: The constructor must have a documentation header.")]
         public ReadOnlyRepositoryTests(
             CosmosDbContextFixture cosmosDbContextFixture,
             CompositionRootServiceProvider compositionRootServiceProvider,
@@ -40,6 +46,8 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration
                 compositionRootServiceProvider.SetUpServiceProvider(_configurationSettings);
         }
 
+        [SuppressMessage("Microsoft.Performance", "CD1605: The method must have a documentation header.")]
+        [SuppressMessage("Microsoft.Performance", "MethodDocumentationHeader: The method must have a documentation header.")]
         [Fact]
         public async Task GetAllItemsByQueryAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
         {

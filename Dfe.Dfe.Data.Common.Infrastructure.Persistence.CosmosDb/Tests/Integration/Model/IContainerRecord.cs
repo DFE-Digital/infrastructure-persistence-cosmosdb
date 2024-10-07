@@ -1,10 +1,11 @@
-﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Model
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Model
 {
+    [SuppressMessage("Microsoft.Performance", "InterfaceDocumentationHeader: The interface must have a documentation header.")]
     public interface IContainerRecord
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        string id { get; set; }
+        [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
+        string Id { get; set; }
     }
 }

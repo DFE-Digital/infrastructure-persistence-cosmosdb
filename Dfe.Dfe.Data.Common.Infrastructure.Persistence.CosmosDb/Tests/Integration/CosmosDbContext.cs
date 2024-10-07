@@ -1,30 +1,24 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Options;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Model;
 using Microsoft.Azure.Cosmos;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration;
 
-/// <summary>
-/// 
-/// </summary>
+[SuppressMessage("Microsoft.Performance", "CD1600: The class must have a documentation header.")]
+[SuppressMessage("Microsoft.Performance", "ClassDocumentationHeader: The class must have a documentation header.")]
 public sealed class CosmosDbContext
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
     public CosmosClient Client { get; private set; } = null!;
 
-    /// <summary>
-    /// 
-    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CD1606: The property must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "PropertyDocumentationHeader: The property must have a documentation header.")]
     public Database DatabaseInstance { get; private set; } = null!;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="TContainerRecord"></typeparam>
-    /// <param name="containerRecords"></param>
-    /// <returns></returns>
+    [SuppressMessage("Microsoft.Performance", "CD1605: The method must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "MethodDocumentationHeader: The method must have a documentation header.")]
     public async Task CreateAndPopulate<TContainerRecord>(
         RepositoryOptions repositoryOptions,
         IReadOnlyCollection<TContainerRecord> containerRecords)
@@ -65,7 +59,7 @@ public sealed class CosmosDbContext
             containerRecords.ToList()
                 .ForEach(containerRecord =>
                     createRecordTasks.Add(
-                        container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.id))));
+                        container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.Id))));
 
             await Task.WhenAll(createRecordTasks);
         }
@@ -77,9 +71,8 @@ public sealed class CosmosDbContext
 
     private bool _clientDisposed;
 
-    /// <summary>
-    /// 
-    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CD1605: The method must have a documentation header.")]
+    [SuppressMessage("Microsoft.Performance", "MethodDocumentationHeader: The method must have a documentation header.")]
     public void CleanUpResources()
     {
         if (!_clientDisposed)
