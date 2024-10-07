@@ -53,5 +53,6 @@ public sealed class CosmosDbClientProvider : ICosmosDbClientProvider, IDisposabl
             _repositoryOptions.EndpointUri,
             _repositoryOptions.PrimaryKey,
             new CosmosClientOptions() {
-                ConnectionMode = ConnectionMode.Gateway }); // TODO: need to configure this so we can switch on and off!
+                ConnectionMode = (ConnectionMode)_repositoryOptions.ConnectionMode
+            });
 }
