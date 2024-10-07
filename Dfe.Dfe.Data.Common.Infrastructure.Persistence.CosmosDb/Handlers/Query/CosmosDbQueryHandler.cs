@@ -6,7 +6,13 @@ using System.Linq.Expressions;
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 
 /// <summary>
-/// 
+/// Provides Support for querying cosmos db container items either using point reads
+/// (i.e. key/value lookup on a single item ID and partition key), see:
+/// or via <b>>Structured Query Language (SQL)</b>, see:
+/// /// <a href="https://devblogs.microsoft.com/cosmosdb/point-reads-versus-queries/">
+/// Point reads vs queries in cosmos db</a>
+/// <a href="https://cosmosdb.github.io/labs/dotnet/labs/03-querying_in_azure_cosmosdb.html">
+/// Querying in azure cosmos db</a>
 /// </summary>
 public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
 {

@@ -49,15 +49,15 @@ public sealed class CosmosDbContext
                 repositoryOptions?.Containers?[0].First().Key;
 
             await DatabaseInstance.DefineContainer(containerKey, "/pk")
-               .WithIndexingPolicy()
-                   .WithIndexingMode(IndexingMode.Consistent)
-                   .WithIncludedPaths()
-                       .Attach()
-                   .WithExcludedPaths()
-                       .Path("/*")
-                       .Attach()
-               .Attach()
-           .CreateAsync(containerRecords.Count);
+                .WithIndexingPolicy()
+                .WithIndexingMode(IndexingMode.Consistent)
+                .WithIncludedPaths()
+                    .Attach()
+                .WithExcludedPaths()
+                .Path("/*")
+                    .Attach()
+                .Attach()
+                .CreateAsync(ThroughputProperties.CreateAutoscaleThroughput(4000));
 
             Container container = DatabaseInstance.GetContainer(containerKey);
             List<Task> createRecordTasks = new(containerRecords.Count);
