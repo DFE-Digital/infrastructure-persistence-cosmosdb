@@ -1,8 +1,7 @@
 ﻿namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Model
 {
-    /// <summary>
-    /// 
-    /// </summary>
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ClassDocumentationHeader", "")]
     public sealed class ContainerRecord : IContainerRecord
     {
         /// <summary>
