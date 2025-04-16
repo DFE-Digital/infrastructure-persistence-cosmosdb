@@ -9,16 +9,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace DfE.Data.ComponentLibrary.Infrastructure.Persistence.CosmosDb;
 
 /// <summary>
-/// 
+/// Provides dependency injection configuration for Cosmos DB components.
 /// </summary>
 public static class CompositionRoot
 {
     /// <summary>
-    /// 
+    /// Configures Cosmos DB dependencies for the hosting application.
     /// </summary>
-    /// <param name="services"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="services">The service collection to which dependencies are added.</param>
+    /// <returns>The configured service collection.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="services"/> parameter is null.</exception>
     public static IServiceCollection AddCosmosDbDependencies(this IServiceCollection services)
     {
         if (services is null)
@@ -27,11 +27,13 @@ public static class CompositionRoot
                 "A service collection is required to configure the CosmosDb Repository.");
         }
 
+        // Configure repository options using the application configuration.
         services.AddOptions<RepositoryOptions>()
             .Configure<IConfiguration>(
                 (settings, configuration) =>
                     configuration.GetSection(nameof(RepositoryOptions)).Bind(settings));
 
+        // Register Cosmos DB providers and repositories as singleton services.
         services.TryAddSingleton<ICosmosDbClientProvider, CosmosDbClientProvider>();
         services.TryAddSingleton<ICosmosDbContainerProvider, CosmosDbContainerProvider>();
         services.TryAddSingleton<IReadOnlyRepository, ReadOnlyRepository>();

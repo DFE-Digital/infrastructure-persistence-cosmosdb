@@ -7,7 +7,8 @@ using Microsoft.Extensions.Options;
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 
 /// <summary>
-/// 
+/// Provides a mechanism for retrieving Cosmos DB containers
+/// by implementing the <see cref="ICosmosDbContainerProvider"/> interface.
 /// </summary>
 public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
 {
@@ -16,12 +17,12 @@ public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
     private readonly RepositoryOptions _repositoryOptions;
 
     /// <summary>
-    /// 
+    /// Initializes a new instance of <see cref="CosmosDbContainerProvider"/>.
     /// </summary>
-    /// <param name="logger"></param>
-    /// <param name="cosmosClientProvider"></param>
-    /// <param name="repositoryOptions"></param>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="logger">Logger for capturing diagnostic information.</param>
+    /// <param name="cosmosClientProvider">Provider for managing Cosmos DB client operations.</param>
+    /// <param name="repositoryOptions">Configuration options for Cosmos DB containers.</param>
+    /// <exception cref="ArgumentNullException">Thrown if any dependencies are null.</exception>
     public CosmosDbContainerProvider(
         ILogger<CosmosDbContainerProvider> logger,
         ICosmosDbClientProvider cosmosClientProvider,
@@ -39,23 +40,26 @@ public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
     }
 
     /// <summary>
-    /// 
+    /// Retrieves a Cosmos DB container using the specified container key.
     /// </summary>
-    /// <param name="containerKey"></param>
-    /// <returns></returns>
+    /// <param name="containerKey">The container key used to identify the target container.</param>
+    /// <returns>The retrieved Cosmos DB container.</returns>
     public async Task<Container> GetContainerAsync(string containerKey)
     {
         try
         {
+            // Retrieve container configuration options.
             ContainerOptions containerOptions =
                 _repositoryOptions.GetContainerOptions(containerKey);
 
+            // Ensure the database exists and retrieve it.
             Database database =
                 await _cosmosClientProvider.InvokeCosmosClientAsync(
                     client =>
                         client.CreateDatabaseIfNotExistsAsync(
                             _repositoryOptions.DatabaseId)).ConfigureAwait(false);
 
+            // Ensure the container exists and return it.
             return (Container)await
                 database.CreateContainerIfNotExistsAsync(
                     containerOptions.ContainerName, containerOptions.PartitionKey).ConfigureAwait(false);
@@ -63,14 +67,14 @@ public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
         catch (CosmosException cosmosEx)
         {
             _logger.LogError(
-                cosmosEx, "A Cosmos db error has occurred retrieving the container specified.");
+                cosmosEx, "A Cosmos DB error occurred while retrieving the specified container.");
 
             throw;
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                ex, "An error has occurred retrieving the container specified.");
+                ex, "An error occurred while retrieving the specified container.");
 
             throw;
         }
