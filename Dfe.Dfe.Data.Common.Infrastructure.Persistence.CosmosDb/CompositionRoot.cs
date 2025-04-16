@@ -9,7 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace DfE.Data.ComponentLibrary.Infrastructure.Persistence.CosmosDb;
 
 /// <summary>
-/// Provides dependency injection configuration for Cosmos DB components.
+/// The composition root provides a unified location where the composition
+/// of the object graphs for the application take place, using the IOC container.
 /// </summary>
 public static class CompositionRoot
 {
