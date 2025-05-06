@@ -39,6 +39,7 @@ public static class CompositionRoot
         services.TryAddSingleton<ICosmosDbContainerProvider, CosmosDbContainerProvider>();
         services.TryAddSingleton<IReadOnlyRepository, ReadOnlyRepository>();
         services.TryAddSingleton<ICosmosDbQueryHandler, CosmosDbQueryHandler>();
+        services.TryAddSingleton<IQueryableToFeedIterator, QueryableToFeedIterator>();
 
         return services;
     }

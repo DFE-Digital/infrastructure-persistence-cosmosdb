@@ -103,24 +103,4 @@ public interface ICosmosDbQueryHandler
         Expression<Func<TItem, TItem>> selector,
         Expression<Func<TItem, bool>> predicate,
         CancellationToken cancellationToken = default) where TItem : class;
-
-    /// <summary>
-    /// Reads all items from the provisioned <see cref="FeedIterator{TItem}"/> until the results are fully drained.
-    /// </summary>
-    /// <typeparam name="TItem">
-    /// The type of resource to return in the <see cref="ItemResponse{TItem}"/>.
-    /// </typeparam>
-    /// <param name="feedIterator">
-    /// Cosmos Result set iterator that keeps track of the continuation token when retrieving results form a query.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The notification that is Propagated when the read operation should be canceled.
-    /// </param>
-    /// <returns>
-    /// A configured instance of the specified generic type which encapsulates the
-    /// requested cosmos db record item.
-    /// </returns>
-    Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
-        FeedIterator<TItem> feedIterator,
-        CancellationToken cancellationToken = default) where TItem : class;
 }

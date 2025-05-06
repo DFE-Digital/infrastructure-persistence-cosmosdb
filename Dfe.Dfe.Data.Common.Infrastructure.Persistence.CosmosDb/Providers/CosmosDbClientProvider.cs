@@ -55,8 +55,6 @@ public sealed class CosmosDbClientProvider : ICosmosDbClientProvider, IDisposabl
         new(
             _repositoryOptions.EndpointUri,
             _repositoryOptions.PrimaryKey,
-            new CosmosClientOptions()
-            {
-                ConnectionMode = ConnectionMode.Gateway
-            });
+            new CosmosClientOptions() {
+                ConnectionMode = ConnectionMode.Gateway });
 }

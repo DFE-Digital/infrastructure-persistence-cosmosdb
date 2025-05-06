@@ -9,25 +9,29 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 /// <summary>
 /// Handles paginated queries in Azure Cosmos DB.
 /// </summary>
-public sealed class PaginatedCosmosDbQueryHandler : IPaginatedCosmosDbQueryHandler
+public sealed class PaginatedCosmosDbQueryHandler : QueryResultReader, IPaginatedCosmosDbQueryHandler
 {
+    private readonly IQueryableToFeedIterator _cosmosLinqQuery;
     private readonly ICosmosDbContainerProvider _cosmosDbContainerProvider;
-    private readonly ICosmosDbQueryHandler _cosmosDbQueryHandler;
 
     /// <summary>
-    /// Initializes a new instance of the PaginatedCosmosDbQueryHandler class.
+    /// Initializes a new instance of the <see cref="PaginatedCosmosDbQueryHandler"/> class.
     /// </summary>
-    /// <param name="cosmosDbContainerProvider">Provider for retrieving Cosmos DB containers.</param>
-    /// <param name="cosmosDbQueryHandler">Handler for executing Cosmos DB queries.</param>
-    /// <exception cref="ArgumentNullException">Thrown if dependencies are null.</exception>
+    /// <param name="cosmosLinqQuery">The Cosmos LINQ query interface.</param>
+    /// <param name="cosmosDbContainerProvider">The Cosmos DB container provider interface.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="cosmosLinqQuery"/> or <paramref name="cosmosDbContainerProvider"/> is null.
+    /// </exception>
     public PaginatedCosmosDbQueryHandler(
-        ICosmosDbContainerProvider cosmosDbContainerProvider,
-        ICosmosDbQueryHandler cosmosDbQueryHandler)
+        IQueryableToFeedIterator cosmosLinqQuery,
+        ICosmosDbContainerProvider cosmosDbContainerProvider)
     {
+        // Ensure the cosmosLinqQuery parameter is not null.
+        _cosmosLinqQuery = cosmosLinqQuery ??
+            throw new ArgumentNullException(nameof(cosmosLinqQuery));
+        // Ensure the cosmosDbContainerProvider parameter is not null.
         _cosmosDbContainerProvider = cosmosDbContainerProvider ??
             throw new ArgumentNullException(nameof(cosmosDbContainerProvider));
-        _cosmosDbQueryHandler = cosmosDbQueryHandler ??
-            throw new ArgumentNullException(nameof(cosmosDbQueryHandler));
     }
 
     /// <summary>
@@ -53,14 +57,17 @@ public sealed class PaginatedCosmosDbQueryHandler : IPaginatedCosmosDbQueryHandl
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
-        // Apply filtering, projection, pagination, and execute the query.
-        return await _cosmosDbQueryHandler.ReadItemsAsync(
+        // Establish the LINQ query for the container.
+        IQueryable<TItem> query =
             container.GetItemLinqQueryable<TItem>()
-                .Where(predicate) // Apply the filtering criteria.
-                .Select(selector) // Select specific fields.
-                .Skip((pageNumber - 1) * pageSize) // Skip items for pagination.
-                .Take(pageSize) // Take required number of items.
-            .ToFeedIterator(), cancellationToken);
+                .Where(predicate)                   // Apply the filtering criteria.
+                .Select(selector)                   // Select specific fields.
+                .Skip((pageNumber - 1) * pageSize)  // Skip items for pagination.
+                .Take(pageSize);                    // Take required number of items.
+
+        // Apply filtering, projection, pagination, and execute the query.
+        return await ReadResultItemsAsync(
+            _cosmosLinqQuery.GetFeedIterator(query), cancellationToken);
     }
 
     /// <summary>
@@ -85,7 +92,7 @@ public sealed class PaginatedCosmosDbQueryHandler : IPaginatedCosmosDbQueryHandl
         // Execute the query to count matching items.
         Response<int> result =
             await container.GetItemLinqQueryable<TItem>()
-                .Where(predicate) // Apply filtering.
+                .Where(predicate)               // Apply filtering.
                 .CountAsync(cancellationToken); // Count matching items.
 
         // Return item count if successful; otherwise, throw an exception.

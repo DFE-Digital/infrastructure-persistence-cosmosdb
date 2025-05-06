@@ -34,7 +34,7 @@ public sealed class RepositoryOptions
     public int ConnectionMode { get; set; }
 
     /// <summary>
-    /// 
+    /// Represents a collection of container configurations.
     /// </summary>
     [JsonProperty(nameof(Containers))]
     public List<Dictionary<string, ContainerOptions>>? Containers { get; set; }

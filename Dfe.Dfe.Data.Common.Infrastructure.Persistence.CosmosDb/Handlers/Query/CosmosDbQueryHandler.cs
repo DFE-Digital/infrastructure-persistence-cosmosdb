@@ -1,6 +1,5 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 using System.Linq.Expressions;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
@@ -14,22 +13,30 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 /// <a href="https://cosmosdb.github.io/labs/dotnet/labs/03-querying_in_azure_cosmosdb.html">
 /// Querying in azure cosmos db</a>
 /// </summary>
-public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
+public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHandler
 {
+    private readonly IQueryableToFeedIterator _cosmosLinqQuery;
     private readonly ICosmosDbContainerProvider _cosmosDbContainerProvider;
 
     /// <summary>
     /// Constructor allows provisioning of an <see cref="ICosmosDbContainerProvider"/> instance which
     /// manages provision of a fully configured Azure Cosmos DB container, which facilitated data storage.
     /// </summary>
+    /// <param name="cosmosLinqQuery">
+    /// Represents a LINQ query for Cosmos DB by implementing the <see cref="IQueryableToFeedIterator"/> interface
+    /// </param>
     /// <param name="cosmosDbContainerProvider">
     /// The concrete implementation of the <see cref="ICosmosDbContainerProvider" />.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// Exception thrown when a null <see cref="ICosmosDbContainerProvider"/> implementation is injected.
     /// </exception>
-    public CosmosDbQueryHandler(ICosmosDbContainerProvider cosmosDbContainerProvider)
+    public CosmosDbQueryHandler(
+        IQueryableToFeedIterator cosmosLinqQuery,
+        ICosmosDbContainerProvider cosmosDbContainerProvider)
     {
+        _cosmosLinqQuery = cosmosLinqQuery ??
+            throw new ArgumentNullException(nameof(cosmosLinqQuery));
         _cosmosDbContainerProvider = cosmosDbContainerProvider ??
             throw new ArgumentNullException(nameof(cosmosDbContainerProvider));
     }
@@ -64,6 +71,10 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
         string partitionKeyValue,
         CancellationToken cancellationToken = default) where TItem : class
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(id);
+        ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
+        ArgumentNullException.ThrowIfNullOrEmpty(partitionKeyValue);
+
         Container container =
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
@@ -110,15 +121,19 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
         Expression<Func<TItem, bool>> predicate,
         CancellationToken cancellationToken = default) where TItem : class
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
+        ArgumentNullException.ThrowIfNull(selector);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         Container container =
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
-        return await ReadItemsAsync(
-            container.GetItemLinqQueryable<TItem>()
-                .Where(predicate)
-                .Select(selector)
-                .ToFeedIterator(), cancellationToken);
+        return await ReadResultItemsAsync(
+            _cosmosLinqQuery.GetFeedIterator(
+                container.GetItemLinqQueryable<TItem>()
+                    .Where(predicate)
+                    .Select(selector)), cancellationToken);
     }
 
     /// <summary>
@@ -147,48 +162,15 @@ public sealed class CosmosDbQueryHandler : ICosmosDbQueryHandler
         string query,
         CancellationToken cancellationToken = default) where TItem : class
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
+        ArgumentNullException.ThrowIfNullOrEmpty(query);
+
         Container container =
             await _cosmosDbContainerProvider
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
-        return await ReadItemsAsync(
-            container.GetItemQueryIterator<TItem>(new QueryDefinition(query)), cancellationToken);
-    }
-
-    /// <summary>
-    /// Reads all items from the provisioned <see cref="FeedIterator{TItem}"/> until the results are fully drained.
-    /// </summary>
-    /// <typeparam name="TItem">
-    /// The type of resource to return in the <see cref="ItemResponse{TItem}"/>.
-    /// </typeparam>
-    /// <param name="feedIterator">
-    /// Cosmos Result set iterator that keeps track of the continuation token when retrieving results form a query.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The notification that is Propagated when the read operation should be canceled.
-    /// </param>
-    /// <returns>
-    /// A configured instance of the specified generic type which encapsulates the
-    /// requested cosmos db record item.
-    /// </returns>
-    public async Task<IEnumerable<TItem>> ReadItemsAsync<TItem>(
-        FeedIterator<TItem> feedIterator,
-        CancellationToken cancellationToken = default) where TItem : class
-    {
-        var items = new List<TItem>();
-
-        using (feedIterator)
-        {
-            while (feedIterator.HasMoreResults)
-            {
-                FeedResponse<TItem> response =
-                    await feedIterator
-                        .ReadNextAsync(cancellationToken).ConfigureAwait(false);
-
-                items.AddRange(response.Resource);
-            }
-        }
-
-        return items;
+        return await ReadResultItemsAsync(
+            container.GetItemQueryIterator<TItem>(
+                new QueryDefinition(query)), cancellationToken);
     }
 }
