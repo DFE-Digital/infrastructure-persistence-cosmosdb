@@ -15,7 +15,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 /// </summary>
 public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHandler
 {
-    private readonly IQueryableToFeedIterator _cosmosLinqQuery;
+    private readonly IQueryableToFeedIterator _queryableToFeedIterator;
     private readonly ICosmosDbContainerProvider _cosmosDbContainerProvider;
 
     /// <summary>
@@ -23,7 +23,7 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
     /// manages provision of a fully configured Azure Cosmos DB container, which facilitated data storage.
     /// </summary>
     /// <param name="cosmosLinqQuery">
-    /// Represents a LINQ query for Cosmos DB by implementing the <see cref="IQueryableToFeedIterator"/> interface
+    /// Converts an <see cref="IQueryable{TItem}"/> to a <see cref="FeedIterator"/>.
     /// </param>
     /// <param name="cosmosDbContainerProvider">
     /// The concrete implementation of the <see cref="ICosmosDbContainerProvider" />.
@@ -32,11 +32,11 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
     /// Exception thrown when a null <see cref="ICosmosDbContainerProvider"/> implementation is injected.
     /// </exception>
     public CosmosDbQueryHandler(
-        IQueryableToFeedIterator cosmosLinqQuery,
+        IQueryableToFeedIterator queryableToFeedIterator,
         ICosmosDbContainerProvider cosmosDbContainerProvider)
     {
-        _cosmosLinqQuery = cosmosLinqQuery ??
-            throw new ArgumentNullException(nameof(cosmosLinqQuery));
+        _queryableToFeedIterator = queryableToFeedIterator ??
+            throw new ArgumentNullException(nameof(queryableToFeedIterator));
         _cosmosDbContainerProvider = cosmosDbContainerProvider ??
             throw new ArgumentNullException(nameof(cosmosDbContainerProvider));
     }
@@ -130,7 +130,7 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
                 .GetContainerAsync(containerKey).ConfigureAwait(false);
 
         return await ReadResultItemsAsync(
-            _cosmosLinqQuery.GetFeedIterator(
+            _queryableToFeedIterator.GetFeedIterator(
                 container.GetItemLinqQueryable<TItem>()
                     .Where(predicate)
                     .Select(selector)), cancellationToken);

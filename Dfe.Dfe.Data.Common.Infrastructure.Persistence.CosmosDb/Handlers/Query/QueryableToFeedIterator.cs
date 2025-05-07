@@ -4,8 +4,7 @@ using Microsoft.Azure.Cosmos.Linq;
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 
 /// <summary>
-/// Represents a LINQ query for Cosmos DB by implementing
-/// the <see cref="IQueryableToFeedIterator"/> interface.
+/// Converts an <see cref="IQueryable{TItem}"/> to a <see cref="FeedIterator"/>.
 /// </summary>
 public sealed class QueryableToFeedIterator : IQueryableToFeedIterator
 {
