@@ -15,17 +15,15 @@ public class RepositoryOptionsExtensionsTests
 
         var repositoryOptions = new RepositoryOptions
         {
-            Containers =
-            [
-                new Dictionary<string, ContainerOptions>
-                {
+            Containers = [
+                new Dictionary<string, ContainerOptions>{
                     { containerKey, expectedContainerOptions }
                 }
             ]
         };
 
         // Act
-        var result = repositoryOptions.GetContainerOptions(containerKey);
+        ContainerOptions? result = repositoryOptions.GetContainerOptions(containerKey);
 
         // Assert
         Assert.NotNull(result);
@@ -39,13 +37,10 @@ public class RepositoryOptionsExtensionsTests
         // Arrange
         var repositoryOptions = new RepositoryOptions
         {
-            Containers =
-            [
-                new Dictionary<string, ContainerOptions>
-                {
+            Containers = [
+                new Dictionary<string, ContainerOptions> {
                     { "ExistingContainer",
-                        new ContainerOptions
-                        {
+                        new ContainerOptions {
                             ContainerName = "ExistingContainer", PartitionKey = "/id"
                         }
                     }
@@ -59,7 +54,7 @@ public class RepositoryOptionsExtensionsTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
             repositoryOptions.GetContainerOptions(missingContainerKey));
 
-        Assert.Contains($"Container dictionary options with container key: {missingContainerKey} not configured in options.", exception.Message);
+        Assert.Contains($"Container with key: {missingContainerKey} not configured in options.", exception.Message);
     }
 
     [Fact]
