@@ -11,25 +11,28 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 /// </summary>
 public sealed class PaginatedCosmosDbQueryHandler : QueryResultReader, IPaginatedCosmosDbQueryHandler
 {
-    private readonly IQueryableToFeedIterator _cosmosLinqQuery;
+    private readonly IQueryableToFeedIterator _queryableToFeedIterator;
     private readonly ICosmosDbContainerProvider _cosmosDbContainerProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaginatedCosmosDbQueryHandler"/> class.
     /// </summary>
-    /// <param name="cosmosLinqQuery">The Cosmos LINQ query interface.</param>
-    /// <param name="cosmosDbContainerProvider">The Cosmos DB container provider interface.</param>
+    /// <param name="queryableToFeedIterator">
+    /// Converts an <see cref="IQueryable{TItem}"/> to a <see cref="FeedIterator"/>.
+    /// </param>
+    /// <param name="cosmosDbContainerProvider">
+    /// The Cosmos DB container provider interface.
+    /// </param>
     /// <exception cref="ArgumentNullException">
-    /// Thrown if <paramref name="cosmosLinqQuery"/> or <paramref name="cosmosDbContainerProvider"/> is null.
+    /// Thrown if <paramref name="queryableToFeedIterator"/>
+    /// or <paramref name="cosmosDbContainerProvider"/> is null.
     /// </exception>
     public PaginatedCosmosDbQueryHandler(
-        IQueryableToFeedIterator cosmosLinqQuery,
+        IQueryableToFeedIterator queryableToFeedIterator,
         ICosmosDbContainerProvider cosmosDbContainerProvider)
     {
-        // Ensure the cosmosLinqQuery parameter is not null.
-        _cosmosLinqQuery = cosmosLinqQuery ??
-            throw new ArgumentNullException(nameof(cosmosLinqQuery));
-        // Ensure the cosmosDbContainerProvider parameter is not null.
+        _queryableToFeedIterator = queryableToFeedIterator ??
+            throw new ArgumentNullException(nameof(queryableToFeedIterator));
         _cosmosDbContainerProvider = cosmosDbContainerProvider ??
             throw new ArgumentNullException(nameof(cosmosDbContainerProvider));
     }
@@ -52,6 +55,15 @@ public sealed class PaginatedCosmosDbQueryHandler : QueryResultReader, IPaginate
         int pageNumber, int pageSize,
         CancellationToken cancellationToken = default) where TItem : class
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
+        ArgumentNullException.ThrowIfNull(selector);
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        if (pageNumber < 1)
+            throw new ArgumentException("Page number must be at least 1.", nameof(pageNumber));
+        if (pageSize < 1)
+            throw new ArgumentException("Page size must be at least 1.", nameof(pageSize));
+
         // Retrieve the container where the items are stored.
         Container container =
             await _cosmosDbContainerProvider
@@ -67,7 +79,7 @@ public sealed class PaginatedCosmosDbQueryHandler : QueryResultReader, IPaginate
 
         // Apply filtering, projection, pagination, and execute the query.
         return await ReadResultItemsAsync(
-            _cosmosLinqQuery.GetFeedIterator(query), cancellationToken);
+            _queryableToFeedIterator.GetFeedIterator(query), cancellationToken);
     }
 
     /// <summary>
@@ -84,6 +96,9 @@ public sealed class PaginatedCosmosDbQueryHandler : QueryResultReader, IPaginate
         Expression<Func<TItem, bool>> predicate,
         CancellationToken cancellationToken = default) where TItem : class
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         // Retrieve the container where the items are stored.
         Container container =
             await _cosmosDbContainerProvider

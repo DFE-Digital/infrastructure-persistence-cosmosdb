@@ -22,7 +22,7 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
     /// Constructor allows provisioning of an <see cref="ICosmosDbContainerProvider"/> instance which
     /// manages provision of a fully configured Azure Cosmos DB container, which facilitated data storage.
     /// </summary>
-    /// <param name="cosmosLinqQuery">
+    /// <param name="queryableToFeedIterator">
     /// Converts an <see cref="IQueryable{TItem}"/> to a <see cref="FeedIterator"/>.
     /// </param>
     /// <param name="cosmosDbContainerProvider">
