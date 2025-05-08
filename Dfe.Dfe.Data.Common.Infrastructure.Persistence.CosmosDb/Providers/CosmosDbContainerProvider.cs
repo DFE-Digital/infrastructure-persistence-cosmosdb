@@ -46,6 +46,8 @@ public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
     /// <returns>The retrieved Cosmos DB container.</returns>
     public async Task<Container> GetContainerAsync(string containerKey)
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
+
         try
         {
             // Retrieve container configuration options.
@@ -54,10 +56,9 @@ public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
 
             // Ensure the database exists and retrieve it.
             Database database =
-                await _cosmosClientProvider.InvokeCosmosClientAsync(
-                    client =>
-                        client.CreateDatabaseIfNotExistsAsync(
-                            _repositoryOptions.DatabaseId)).ConfigureAwait(false);
+                await _cosmosClientProvider.InvokeCosmosClientAsync(client =>
+                    client.CreateDatabaseIfNotExistsAsync(
+                        _repositoryOptions.DatabaseId)).ConfigureAwait(false);
 
             // Ensure the container exists and return it.
             return (Container)await

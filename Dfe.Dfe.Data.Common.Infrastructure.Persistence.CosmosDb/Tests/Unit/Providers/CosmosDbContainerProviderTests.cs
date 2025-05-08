@@ -1,100 +1,185 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Options;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
+using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Providers.TestDoubles;
+using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Linq.Expressions;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Providers;
 
 public class CosmosDbContainerProviderTests
 {
-    private readonly Mock<ILogger<CosmosDbContainerProvider>> _mockLogger;
-    private readonly Mock<ICosmosDbClientProvider> _mockCosmosClientProvider;
-    private readonly Mock<IOptions<RepositoryOptions>> _mockRepositoryOptions;
-    private readonly CosmosDbContainerProvider _containerProvider;
-    private readonly RepositoryOptions _repositoryOptions;
-
-    public CosmosDbContainerProviderTests()
-    {
-        _mockLogger = new Mock<ILogger<CosmosDbContainerProvider>>();
-        _mockCosmosClientProvider = new Mock<ICosmosDbClientProvider>();
-        _mockRepositoryOptions = new Mock<IOptions<RepositoryOptions>>();
-
-        _repositoryOptions = new RepositoryOptions
-        {
-            DatabaseId = "TestDatabase"
-        };
-
-        _mockRepositoryOptions.Setup(o => o.Value).Returns(_repositoryOptions);
-
-        _containerProvider = new CosmosDbContainerProvider(
-            _mockLogger.Object,
-            _mockCosmosClientProvider.Object,
-            _mockRepositoryOptions.Object);
-    }
-
     [Fact]
     public async Task GetContainerAsync_ShouldReturnContainer()
     {
         // Arrange
-        var mockDatabase = new Mock<Database>();
-        var mockContainer = new Mock<Container>();
-        var mockContainerOptions = new ContainerOptions { ContainerName = "TestContainer", PartitionKey = "/id" };
+        const string ContainerName = "TestContainer";
+        const string PartitionKey = "/id";
 
-        //_mockRepositoryOptions.Setup(o => o.Value.GetContainerOptions(It.IsAny<string>()))
-        mockDatabase.Setup(db => db.CreateContainerIfNotExistsAsync(It.IsAny<string>(), It.IsAny<string>(), default, default, default))
-            .ReturnsAsync((ContainerResponse)Activator.CreateInstance(typeof(ContainerResponse), true));
-        //    .Returns(mockContainerOptions);
+        Mock<ILogger<CosmosDbContainerProvider>> mockLoggerTestDouble = LoggerTestDouble.DefaultMock();
+        Mock <IOptions<RepositoryOptions>> mockRepositoryOptions =
+            RepositoryOptionsTestDouble.MockFor(ContainerName, PartitionKey);
+        Mock<ContainerResponse> mockContainerResponse =
+            ContainerResponseTestDouble.MockFor(new Mock<Container>().Object);
+        Mock<Database> mockDatabase =
+            CosmosDatabaseTestDouble.MockFor(mockContainerResponse.Object);
+        Mock<DatabaseResponse> mockDatabaseResponse =
+            CosmosDatabaseResponseTestDouble.MockFor(mockDatabase.Object);
+        Mock<ICosmosDbClientProvider> mockCosmosDbClientProvider =
+            CosmosDbClientProviderTestDouble.MockFor(mockDatabaseResponse.Object);
 
-        _mockCosmosClientProvider.Setup(p => p.InvokeCosmosClientAsync(It.IsAny<Func<CosmosClient, Task<Database>>>()))
-            .ReturnsAsync(mockDatabase.Object);
+        CosmosDbContainerProvider containerProvider =
+            new(mockLoggerTestDouble.Object, mockCosmosDbClientProvider.Object, mockRepositoryOptions.Object);
 
         // Act
-        var result = await _containerProvider.GetContainerAsync("TestContainer");
+        var result = await containerProvider.GetContainerAsync(containerKey: ContainerName);
+
+        // Assert - we'll just check the values even though they're mocked to ensure
+        // the mocks are operating correctly although we'll still verify these calls.
+        Assert.NotNull(result);
+
+        // Ensure the correct call was made to the mocked container instance.
+        mockContainerResponse.Verify(response => response.Container, Times.Once());
+        // Ensure the correct call was made to the mocked database response instance.
+        mockDatabaseResponse.Verify(response => response.Database, Times.Once());
+        // Ensure the correct call was made to the mocked database instance.
+        mockDatabase.Verify(database =>
+             database.CreateContainerIfNotExistsAsync(
+                It.IsAny<string>(), It.IsAny<string>(), default, default, default), Times.Once);
+        // Ensure the correct call was made to the client provider instance.
+        mockCosmosDbClientProvider.Verify(clientProvider =>
+            clientProvider.InvokeCosmosClientAsync(
+                It.IsAny<Func<CosmosClient, Task<DatabaseResponse>>>()), Times.Once());
+        // Ensure the correct call was made to the repository options instance.
+        mockRepositoryOptions.Verify(options => options.Value, Times.Once());
+    }
+
+    [Fact]
+    public void Constructor_WithNullLogger_ThrowsExpectedArgumentNullException()
+    {
+        // Arrange.
+        Mock<ICosmosDbClientProvider> mockCosmosDbClientProvider =
+            CosmosDbClientProviderTestDouble.DefaultMock();
+        Mock<IOptions<RepositoryOptions>> mockRepositoryOptions =
+            RepositoryOptionsTestDouble.DefaultMock();
+
+        // Act
+        Action failedAction = () =>
+            new CosmosDbContainerProvider(
+                logger: null!, mockCosmosDbClientProvider.Object, mockRepositoryOptions.Object);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(mockContainer.Object, result);
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(failedAction);
+
+        exception.Message.Should().Be("Value cannot be null. (Parameter 'logger')");
+    }
+
+    [Fact]
+    public void Constructor_WithNullCosmosDbClientProvider_ThrowsExpectedArgumentNullException()
+    {
+        // Arrange.
+        Mock<IOptions<RepositoryOptions>> mockRepositoryOptions =
+            RepositoryOptionsTestDouble.DefaultMock();
+        Mock<ILogger<CosmosDbContainerProvider>> mockLoggerTestDouble = LoggerTestDouble.DefaultMock();
+
+        // Act
+        Action failedAction = () =>
+            new CosmosDbContainerProvider(
+                mockLoggerTestDouble.Object, cosmosClientProvider: null!, mockRepositoryOptions.Object);
+
+        // Assert
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(failedAction);
+
+        exception.Message.Should().Be("Value cannot be null. (Parameter 'cosmosClientProvider')");
+    }
+
+    [Fact]
+    public async Task ReadItemsAsync_WithNullSelector_ThrowsExpectedArgumentNullExceptionType()
+    {
+        // Arrange
+        Mock<IOptions<RepositoryOptions>> mockRepositoryOptions =
+            RepositoryOptionsTestDouble.DefaultMock();
+        Mock<ICosmosDbClientProvider> mockCosmosDbClientProvider =
+            CosmosDbClientProviderTestDouble.DefaultMock();
+        Mock<ILogger<CosmosDbContainerProvider>> mockLoggerTestDouble = LoggerTestDouble.DefaultMock();
+
+        CosmosDbContainerProvider containerProvider =
+            new(mockLoggerTestDouble.Object, mockCosmosDbClientProvider.Object, mockRepositoryOptions.Object);
+
+        // Act, assert 
+        var exception = Assert.ThrowsAsync<ArgumentNullException>(() =>
+             containerProvider.GetContainerAsync(containerKey: null!));
+
+        // Check the exception message
+        Assert.Equal("Value cannot be null. (Parameter 'containerKey')", (await exception).Message);
     }
 
     [Fact]
     public async Task GetContainerAsync_ShouldLogErrorOnCosmosException()
     {
         // Arrange
-        _mockCosmosClientProvider.Setup(p => p.InvokeCosmosClientAsync(It.IsAny<Func<CosmosClient, Task<Database>>>()))
-            .ThrowsAsync(new CosmosException("Cosmos error", System.Net.HttpStatusCode.BadRequest, 0, "", 0));
+        const string ContainerName = "TestContainer";
+        const string PartitionKey = "/id";
+
+        Mock<ICosmosDbClientProvider> mockCosmosDbClientProvider =
+            CosmosDbClientProviderTestDouble.MockForCosmosError();
+        Mock<IOptions<RepositoryOptions>> mockRepositoryOptions =
+            RepositoryOptionsTestDouble.MockFor(ContainerName, PartitionKey);
+
+        Expression<Action<ILogger<CosmosDbContainerProvider>>> logAction =
+            logger =>
+                logger.Log<It.IsAnyType>(LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>());
+
+        Mock<ILogger<CosmosDbContainerProvider>> mockLogger = LoggerTestDouble.MockFor(logAction);
+
+        CosmosDbContainerProvider containerProvider =
+            new(mockLogger.Object, mockCosmosDbClientProvider.Object, mockRepositoryOptions.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<CosmosException>(() => _containerProvider.GetContainerAsync("TestContainer"));
+        await Assert.ThrowsAsync<CosmosException>(() =>
+            containerProvider.GetContainerAsync(containerKey: ContainerName));
 
-        _mockLogger.Verify(
-            x => x.Log(
-                It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
-                It.IsAny<EventId>(),
-                It.IsAny<object>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()),
-            Times.Once);
+        // Verify the log action was called with the expected parameters.
+        mockLogger.Verify(logAction, Times.Once);
     }
 
     [Fact]
     public async Task GetContainerAsync_ShouldLogErrorOnGenericException()
     {
         // Arrange
-        _mockCosmosClientProvider.Setup(p => p.InvokeCosmosClientAsync(It.IsAny<Func<CosmosClient, Task<Database>>>()))
-            .ThrowsAsync(new Exception("Generic error"));
+        const string ContainerName = "TestContainer";
+        const string PartitionKey = "/id";
+
+        Mock<ICosmosDbClientProvider> mockCosmosDbClientProvider =
+            CosmosDbClientProviderTestDouble.MockForGenericError();
+        Mock<IOptions<RepositoryOptions>> mockRepositoryOptions =
+            RepositoryOptionsTestDouble.MockFor(ContainerName, PartitionKey);
+
+        Expression<Action<ILogger<CosmosDbContainerProvider>>> logAction =
+            logger =>
+                logger.Log<It.IsAnyType>(LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>());
+
+        Mock<ILogger<CosmosDbContainerProvider>> mockLogger = LoggerTestDouble.MockFor(logAction);
+
+        CosmosDbContainerProvider containerProvider =
+            new(mockLogger.Object, mockCosmosDbClientProvider.Object, mockRepositoryOptions.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => _containerProvider.GetContainerAsync("TestContainer"));
+        await Assert.ThrowsAsync<Exception>(() =>
+            containerProvider.GetContainerAsync(containerKey: ContainerName));
 
-        _mockLogger.Verify(
-            x => x.Log(
-                It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
-                It.IsAny<EventId>(),
-                It.IsAny<object>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()),
-            Times.Once);
+        // Verify the log action was called with the expected parameters.
+        mockLogger.Verify(logAction, Times.Once);
     }
 }

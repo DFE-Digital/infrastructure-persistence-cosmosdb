@@ -19,7 +19,7 @@ public class CosmosDbClientProviderTests
         _repositoryOptions = new RepositoryOptions
         {
             EndpointUri = "https://test-cosmos-db.documents.azure.com:443/",
-            PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" // Cosmos Db Emulator key so safe to share.
+            PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" // Publicly exposed Cosmos Db Emulator key so safe to share.
         };
 
         _mockOptions = new Mock<IOptions<RepositoryOptions>>();
@@ -30,9 +30,6 @@ public class CosmosDbClientProviderTests
         _clientProvider = new CosmosDbClientProvider(_mockOptions.Object);
     }
 
-    /// <summary>
-    /// Tests the InvokeCosmosClientAsync method to ensure it executes the client invoker.
-    /// </summary>
     [Fact]
     public async Task InvokeCosmosClientAsync_ShouldExecuteClientInvoker()
     {
@@ -54,9 +51,6 @@ public class CosmosDbClientProviderTests
         Assert.Equal("Success", result);
     }
 
-    /// <summary>
-    /// Tests the constructor to ensure it throws an exception when options are null.
-    /// </summary>
     [Fact]
     public void Constructor_ShouldThrowException_WhenOptionsAreNull()
     {
