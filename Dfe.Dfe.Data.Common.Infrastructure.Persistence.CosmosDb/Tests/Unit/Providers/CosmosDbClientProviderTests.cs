@@ -19,7 +19,8 @@ public class CosmosDbClientProviderTests
         _repositoryOptions = new RepositoryOptions
         {
             EndpointUri = "https://test-cosmos-db.documents.azure.com:443/",
-            PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" // Publicly exposed Cosmos Db Emulator key so safe to share.
+            // Publicly exposed Cosmos Db Emulator key so safe to share.
+            PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
         };
 
         _mockOptions = new Mock<IOptions<RepositoryOptions>>();
