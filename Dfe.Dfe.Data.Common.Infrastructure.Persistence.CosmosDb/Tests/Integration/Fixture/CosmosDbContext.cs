@@ -43,42 +43,34 @@ public sealed class CosmosDbContext
         // Create the database if it doesn't already exist
         DatabaseInstance = await Client.CreateDatabaseIfNotExistsAsync(repositoryOptions.DatabaseId);
 
-        try
-        {
-            // Get the container key from the first container configuration
-            string? containerKey = repositoryOptions?.Containers?[0].First().Key;
-            // Define and create the container with a consistent indexing policy
-            await DatabaseInstance.DefineContainer(containerKey, "/pk")
-                .WithIndexingPolicy()
-                .WithIndexingMode(IndexingMode.Consistent)
-                .WithIncludedPaths() // No specific included paths defined
-                    .Attach()
-                .WithExcludedPaths() // Exclude all paths from indexing
-                    .Path("/*")
-                    .Attach()
+        // Get the container key from the first container configuration
+        string? containerKey = repositoryOptions?.Containers?[0].First().Key;
+        // Define and create the container with a consistent indexing policy
+        await DatabaseInstance.DefineContainer(containerKey, "/pk")
+            .WithIndexingPolicy()
+            .WithIndexingMode(IndexingMode.Consistent)
+            .WithIncludedPaths() // No specific included paths defined
                 .Attach()
-                .CreateAsync(containerRecords.Count); // Set throughput based on record count
+            .WithExcludedPaths() // Exclude all paths from indexing
+                .Path("/*")
+                .Attach()
+            .Attach()
+            .CreateAsync(containerRecords.Count); // Set throughput based on record count
 
-            // Get a reference to the newly created container
-            Container container = DatabaseInstance.GetContainer(containerKey);
+        // Get a reference to the newly created container
+        Container container = DatabaseInstance.GetContainer(containerKey);
 
-            // Prepare tasks to insert each record into the container
-            List<Task> createRecordTasks = new(containerRecords.Count);
+        // Prepare tasks to insert each record into the container
+        List<Task> createRecordTasks = new(containerRecords.Count);
 
-            // Add a create item task for each record
-            containerRecords.ToList()
-                .ForEach(containerRecord =>
-                    createRecordTasks.Add(
-                        container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.id))));
+        // Add a create item task for each record
+        containerRecords.ToList()
+            .ForEach(containerRecord =>
+                createRecordTasks.Add(
+                    container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.id))));
 
-            // Wait for all insert operations to complete
-            await Task.WhenAll(createRecordTasks);
-        }
-        catch
-        {
-            // If an error occurs, clean up the created resources
-            CleanUpResources();
-        }
+        // Wait for all insert operations to complete
+        await Task.WhenAll(createRecordTasks);
     }
 
     // Flag to ensure cleanup is only performed once
