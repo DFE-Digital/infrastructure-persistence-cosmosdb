@@ -1,7 +1,6 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Options;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
-using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,7 +36,6 @@ public static class CompositionRoot
         // Register Cosmos DB providers and repositories as singleton services.
         services.TryAddSingleton<ICosmosDbClientProvider, CosmosDbClientProvider>();
         services.TryAddSingleton<ICosmosDbContainerProvider, CosmosDbContainerProvider>();
-        services.TryAddSingleton<IReadOnlyRepository, ReadOnlyRepository>();
         services.TryAddSingleton<ICosmosDbQueryHandler, CosmosDbQueryHandler>();
         services.TryAddSingleton<IQueryableToFeedIterator, QueryableToFeedIterator>();
 
