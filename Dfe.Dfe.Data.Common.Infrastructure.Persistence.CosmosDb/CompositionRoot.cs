@@ -1,4 +1,5 @@
-﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
+﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Command;
+using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Options;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,7 @@ public static class CompositionRoot
         services.TryAddSingleton<ICosmosDbContainerProvider, CosmosDbContainerProvider>();
         services.TryAddSingleton<ICosmosDbQueryHandler, CosmosDbQueryHandler>();
         services.TryAddSingleton<IQueryableToFeedIterator, QueryableToFeedIterator>();
+        services.TryAddSingleton<ICosmosDbCommandHandler, CosmosDbCommandHandler>();
 
         return services;
     }

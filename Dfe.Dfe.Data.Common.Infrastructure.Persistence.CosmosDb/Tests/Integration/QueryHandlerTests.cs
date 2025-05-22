@@ -1,4 +1,5 @@
-﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture;
+﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
+using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture.Model;
 using FluentAssertions;
 using System.Linq.Expressions;
@@ -8,7 +9,8 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task ReadItemsAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
-        var (queryHandler, context, _) = await CosmosDbTestHelper.CreateIsolatedQueryHandlerAsync();
+        var (queryHandler, context, records) =
+            await CosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
 
         try
         {
@@ -29,7 +31,8 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task ReadItemByIdAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResult()
     {
-        var (queryHandler, context, records) = await CosmosDbTestHelper.CreateIsolatedQueryHandlerAsync();
+        var (queryHandler, context, records) =
+            await CosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
 
         try
         {
@@ -52,7 +55,8 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task ReadItemsAsync_WithLambda_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
-        var (queryHandler, context, records) = await CosmosDbTestHelper.CreateIsolatedQueryHandlerAsync();
+        var (queryHandler, context, records) =
+            await CosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
 
         try
         {

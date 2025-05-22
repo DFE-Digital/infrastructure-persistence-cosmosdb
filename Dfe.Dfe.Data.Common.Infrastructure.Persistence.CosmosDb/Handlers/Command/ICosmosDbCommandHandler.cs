@@ -39,21 +39,6 @@ public interface ICosmosDbCommandHandler
         CancellationToken cancellationToken = default) where TItem : class;
 
     /// <summary>
-    /// Creates multiple items in the specified container.
-    /// </summary>
-    /// <typeparam name="TItem">The type of the items to create.</typeparam>
-    /// <param name="items">The collection of items to create.</param>
-    /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
-    /// <param name="partitionKeyValue">The value of the partition key.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A collection of the created items.</returns>
-    public Task<IEnumerable<TItem>> CreateItemsAsync<TItem>(
-        IEnumerable<TItem> items,
-        string containerKey,
-        string partitionKeyValue,
-        CancellationToken cancellationToken = default) where TItem : class;
-
-    /// <summary>
     /// Updates or inserts an item using a string partition key.
     /// </summary>
     /// <typeparam name="TItem">The type of the item to update.</typeparam>
@@ -81,21 +66,6 @@ public interface ICosmosDbCommandHandler
         TItem item,
         string containerKey,
         PartitionKey partitionKey,
-        CancellationToken cancellationToken = default) where TItem : class;
-
-    /// <summary>
-    /// Updates or inserts multiple items in the specified container.
-    /// </summary>
-    /// <typeparam name="TItem">The type of the items to update.</typeparam>
-    /// <param name="items">The collection of items to update.</param>
-    /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
-    /// <param name="partitionKeyValue">The value of the partition key.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A collection of the updated items.</returns>
-    public Task<IEnumerable<TItem>> UpdateItemsAsync<TItem>(
-        IEnumerable<TItem> items,
-        string containerKey,
-        string partitionKeyValue,
         CancellationToken cancellationToken = default) where TItem : class;
 
     /// <summary>
