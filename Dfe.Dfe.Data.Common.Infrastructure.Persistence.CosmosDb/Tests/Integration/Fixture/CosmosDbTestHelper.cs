@@ -11,7 +11,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
 /// <summary>
 /// Provides helper methods for setting up isolated Cosmos DB test environments.
 /// </summary>
-public static class CosmosDbTestHelper
+public sealed class CosmosDbTestHelper
 {
     /// <summary>
     /// Creates a fully isolated Cosmos DB context, populates it with test data,
@@ -24,8 +24,7 @@ public static class CosmosDbTestHelper
     /// - The CosmosDbContext (for cleanup)
     /// - The collection of inserted test records
     /// </returns>
-    public static async Task<
-   (THandlerType queryHandler, CosmosDbContext context, IReadOnlyCollection<ContainerRecord> records)>
+    public async Task<(THandlerType queryHandler, CosmosDbContext context, IReadOnlyCollection<ContainerRecord> records)>
     CreateIsolatedHandlerAsync<THandlerType>(int numberOfRecords = 1000) where THandlerType : notnull
     {
         // Build configuration using the Cosmos DB emulator settings  

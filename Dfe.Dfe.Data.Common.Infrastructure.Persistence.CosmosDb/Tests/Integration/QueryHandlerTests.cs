@@ -9,8 +9,8 @@ public sealed class QueryHandlerTests
     [Fact]
     public async Task ReadItemsAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
-        var (queryHandler, context, records) =
-            await CosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
+        var (queryHandler, context, _) =
+            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
 
         try
         {
@@ -32,7 +32,7 @@ public sealed class QueryHandlerTests
     public async Task ReadItemByIdAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResult()
     {
         var (queryHandler, context, records) =
-            await CosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
+            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
 
         try
         {
@@ -56,7 +56,7 @@ public sealed class QueryHandlerTests
     public async Task ReadItemsAsync_WithLambda_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
         var (queryHandler, context, records) =
-            await CosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
+            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
 
         try
         {
