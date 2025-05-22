@@ -14,6 +14,11 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
 public sealed class CosmosDbTestHelper
 {
     /// <summary>
+    /// A collection of container records used for testing purposes.
+    /// </summary>
+    public IReadOnlyCollection<ContainerRecord>? ContainerRecords { get; private set; }
+
+    /// <summary>
     /// Creates a fully isolated Cosmos DB context, populates it with test data,
     /// and returns the query handler and test data for use in integration tests.
     /// </summary>
@@ -42,15 +47,15 @@ public sealed class CosmosDbTestHelper
         var cosmosDbContext = new CosmosDbContext();
 
         // Generate a collection of test records  
-        var containerRecords = new CosmosDbContextFixture().InitialiseContainerRecords(numberOfRecords);
+        ContainerRecords = new CosmosDbContextFixture().InitialiseContainerRecords(numberOfRecords);
 
         // Create the database and container, and populate it with test data  
-        await cosmosDbContext.CreateAndPopulate(repositoryOptions.Value, containerRecords);
+        await cosmosDbContext.CreateAndPopulate(repositoryOptions.Value, ContainerRecords);
 
         // Resolve the handler from the service provider  
         THandlerType cosmosHandler = testServiceProvider.GetRequiredService<THandlerType>();
 
         // Return all components needed for the test  
-        return (cosmosHandler, cosmosDbContext, containerRecords);
+        return (cosmosHandler, cosmosDbContext, ContainerRecords);
     }
 }

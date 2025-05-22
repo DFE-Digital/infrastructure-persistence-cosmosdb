@@ -4,6 +4,8 @@ using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixt
 using FluentAssertions;
 using System.Linq.Expressions;
 
+namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration;
+
 public sealed class QueryHandlerTests
 {
     [Fact]
