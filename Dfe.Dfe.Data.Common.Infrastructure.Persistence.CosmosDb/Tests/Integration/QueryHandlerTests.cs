@@ -1,58 +1,78 @@
-﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
-using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Options;
-using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture;
-using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture.Configuration;
+﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture.Model;
-using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.Fixture.ServiceProviders;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using System.Linq.Expressions;
 
-namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration;
-
-public sealed class QueryHandlerTests :
-    IClassFixture<CosmosDbContextFixture>,
-    IClassFixture<CompositionRootServiceProvider>,
-    IClassFixture<ConfigurationSettingsBuilder>
+public sealed class QueryHandlerTests
 {
-    private readonly ICosmosDbQueryHandler _queryHandler;
-
-    public QueryHandlerTests(
-        CosmosDbContextFixture cosmosDbContextFixture,
-        CompositionRootServiceProvider compositionRootServiceProvider,
-        ConfigurationSettingsBuilder configurationSettingsBuilder)
-    {
-        IConfiguration configurationSettings =
-            configurationSettingsBuilder.SetupConfiguration(CosmosDbConfigurationStub.GetEmulatorConfiguration());
-        IServiceProvider testServiceProvider =
-            compositionRootServiceProvider.SetUpServiceProvider(configurationSettings);
-        IOptions<RepositoryOptions> repositoryOptions =
-            testServiceProvider.GetRequiredService<IOptions<RepositoryOptions>>();
-        IReadOnlyCollection<ContainerRecord> containerRecords =
-            cosmosDbContextFixture.InitialiseContainerRecords(numberOfRecords: 100);
-        Task.Run(
-            async () => {
-                await cosmosDbContextFixture.Context.CreateAndPopulate(
-                    repositoryOptions.Value,
-                    containerRecords);
-            })
-            .GetAwaiter()
-            .GetResult();
-
-        _queryHandler = testServiceProvider.GetRequiredService<ICosmosDbQueryHandler>();
-    }
-
     [Fact]
     public async Task ReadItemsAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
-        // act
-        IEnumerable<ContainerRecord>? results =
-            await _queryHandler?.ReadItemsAsync<ContainerRecord>("test-container", "SELECT TOP 10 * FROM c")!;
+        var (queryHandler, context, _) = await CosmosDbTestHelper.CreateIsolatedQueryHandlerAsync();
 
-        // assert
-        results.Should().NotBeNullOrEmpty()
-            .And.HaveCount(10)
-            .And.AllBeAssignableTo<ContainerRecord>();
+        try
+        {
+            var results = await queryHandler.ReadItemsAsync<ContainerRecord>(
+                containerKey: "test-container",
+                query: "SELECT TOP 10 * FROM c");
+
+            results.Should().NotBeNullOrEmpty()
+                .And.HaveCount(10)
+                .And.AllBeAssignableTo<ContainerRecord>();
+        }
+        finally
+        {
+            context.CleanUpResources();
+        }
+    }
+
+    [Fact]
+    public async Task ReadItemByIdAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResult()
+    {
+        var (queryHandler, context, records) = await CosmosDbTestHelper.CreateIsolatedQueryHandlerAsync();
+
+        try
+        {
+            var itemId = records.First().id;
+
+            var result = await queryHandler.ReadItemByIdAsync<ContainerRecord>(
+                id: itemId,
+                containerKey: "test-container",
+                partitionKeyValue: itemId);
+
+            result.Should().NotBeNull()
+                .And.BeAssignableTo<ContainerRecord>();
+        }
+        finally
+        {
+            context.CleanUpResources();
+        }
+    }
+
+    [Fact]
+    public async Task ReadItemsAsync_WithLambda_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
+    {
+        var (queryHandler, context, records) = await CosmosDbTestHelper.CreateIsolatedQueryHandlerAsync();
+
+        try
+        {
+            var itemId = records.First().id;
+
+            Expression<Func<ContainerRecord, bool>> predicate = item => item.id.Contains(itemId);
+            Expression<Func<ContainerRecord, ContainerRecord>> selector = _ => new ContainerRecord { id = itemId };
+
+            var results = await queryHandler.ReadItemsAsync<ContainerRecord>(
+                containerKey: "test-container",
+                selector: selector,
+                predicate: predicate);
+
+            results.Should().NotBeNullOrEmpty()
+                .And.HaveCount(1)
+                .And.AllBeAssignableTo<ContainerRecord>();
+        }
+        finally
+        {
+            context.CleanUpResources();
+        }
     }
 }
