@@ -11,6 +11,51 @@ The **Cosmos DB Persistence Library** provides a structured abstraction for inte
 - **Efficient Data Streaming**: Convert LINQ queries into `FeedIterator` for optimized batch processing.
 
 ## Installation
+**NuGet Package Management**
+
+GitHub Packages is a private package registry integrated with GitHub, allowing developers to store and distribute NuGet packages securely.
+
+In order to consume the lates NuGet Package version from GitHub Packages the following steps should be observed:
+
+Steps to Install NuGet Packages from GitHub Packages
+
+
+**1. Authenticate with GitHub**
+
+- Generate a GitHub Personal Access Token (PAT) with the read:packages scope.
+
+- Store the token securely, as you'll use it for authentication.
+
+**2. Configure NuGet Source**
+
+- Add GitHub Packages as a source in your NuGet.config file:
+```
+<configuration>
+  <packageSources>
+    <add key="GitHub" value="https://nuget.pkg.github.com/YOUR_GITHUB_USERNAME/index.json" />
+  </packageSources>
+  <packageSourceCredentials>
+    <GitHub>
+      <add key="Username" value="YOUR_GITHUB_USERNAME" />
+      <add key="ClearTextPassword" value="YOUR_GITHUB_PERSONAL_ACCESS_TOKEN" />
+    </GitHub>
+  </packageSourceCredentials>
+</configuration>
+
+```
+
+**3. Install Package**
+
+Run the following command to install a package from GitHub:
+```
+dotnet add package Dfe.Data.Common.Infrastructure.Persistence.CosmosDb --version 1.X.X
+```
+
+Note: Available package versions can be found at the followoing location:
+
+https://github.com/DFE-Digital/infrastructure-persistence-cosmosdb/pkgs/nuget/Dfe.Data.Common.Infrastructure.Persistence.CosmosDb
+
+
 **Dependency Registration (Composition Root)**
 Register Cosmos DB dependencies in your application's startup configuration:
 ```csharp
