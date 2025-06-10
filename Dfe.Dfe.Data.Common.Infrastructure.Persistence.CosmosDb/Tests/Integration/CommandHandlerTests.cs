@@ -52,7 +52,7 @@ public sealed class CommandHandlerTests
 
         // act
         ContainerRecord? result =
-            await _fixture.Handler.UpdateItemAsync<ContainerRecord>(
+            await _fixture.Handler.UpsertItemAsync<ContainerRecord>(
                 item: ContainerRecord.Create(id: itemKey, username: updatedUsername),
                 containerKey: ContainerName,
                 partitionKeyValue: itemKey);

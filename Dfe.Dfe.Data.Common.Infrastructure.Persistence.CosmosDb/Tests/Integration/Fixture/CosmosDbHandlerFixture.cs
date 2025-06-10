@@ -77,12 +77,11 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
             await DbFixture.InitializeAsync();
             await DbFixture.Database.StartAsync(partitionKeyPath: partitionKeyPath);
 
+            // Add the test records.
             foreach (ContainerRecord? containerRecord in ContainerRecords)
             {
                 await DbFixture.Database.WriteAsync(containerRecord, partitionKeyPath);
             }
-
-            // Add the test records.
 
             // Resolve the Cosmos DB handler from the service provider.
             Handler = testServiceProvider.GetRequiredService<THandlerType>();

@@ -58,7 +58,7 @@ public class CosmosDbCommandHandlerTests
         // act
         TestItem? result =
             await new CosmosDbCommandHandler(containerProviderMock.Object)
-                .UpdateItemAsync(item, "containerKey", new PartitionKey("1"));
+                .UpsertItemAsync(item, "containerKey", new PartitionKey("1"));
 
         // assert/verify
         Assert.Equal(item, result);

@@ -47,7 +47,7 @@ public interface ICosmosDbCommandHandler
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The updated item.</returns>
-    public Task<TItem> UpdateItemAsync<TItem>(
+    public Task<TItem> UpsertItemAsync<TItem>(
         TItem item,
         string containerKey,
         string partitionKeyValue,
@@ -62,8 +62,42 @@ public interface ICosmosDbCommandHandler
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The updated item.</returns>
-    public Task<TItem> UpdateItemAsync<TItem>(
+    public Task<TItem> UpsertItemAsync<TItem>(
         TItem item,
+        string containerKey,
+        PartitionKey partitionKey,
+        CancellationToken cancellationToken = default) where TItem : class;
+
+    /// <summary>
+    /// Replaces an item using a string partition key.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the item to update.</typeparam>
+    /// <param name="item">The item to update.</param>
+    /// <param name="itemId">The item Id to update.</param>
+    /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
+    /// <param name="partitionKeyValue">The value of the partition key.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The updated item.</returns>
+    public Task<TItem> ReplaceItemAsync<TItem>(
+        TItem item,
+        string itemId,
+        string containerKey,
+        string partitionKeyValue,
+        CancellationToken cancellationToken = default) where TItem : class;
+
+    /// <summary>
+    /// Replaces an item using a <see cref="PartitionKey"/>.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the item to update.</typeparam>
+    /// <param name="item">The item to update.</param>
+    /// <param name="itemId">The item Id to update.</param>
+    /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
+    /// <param name="partitionKey">The partition key for the item.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The updated item.</returns>
+    public Task<TItem> ReplaceItemAsync<TItem>(
+        TItem item,
+        string itemId,
         string containerKey,
         PartitionKey partitionKey,
         CancellationToken cancellationToken = default) where TItem : class;
@@ -80,7 +114,7 @@ public interface ICosmosDbCommandHandler
         string id,
         string containerKey,
         string partitionKeyValue = null!,
-        CancellationToken cancellationToken = default) where TItem : class;
+    CancellationToken cancellationToken = default) where TItem : class;
 
     /// <summary>
     /// Deletes an item using a <see cref="PartitionKey"/>.
