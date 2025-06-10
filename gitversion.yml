@@ -6,6 +6,7 @@ branches:
     increment: Patch
     prevent-increment-of-merged-branch-version: true
     track-merge-target: true
+    major-version: 1  # Enforces major version 1
   feature:
     regex: ^feature[/-]
     tag: alpha
