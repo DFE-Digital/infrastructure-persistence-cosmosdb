@@ -84,7 +84,7 @@ This section defines global settings for your Cosmos DB connection:
 
 - **PrimaryKey:** Authentication key—should be kept secure using environment variables or a secret vault (like Azure Key Vault).
 
-- ** DatabaseId: ** Defines which Cosmos DB database is being used (giapsearch).
+- **DatabaseId:** Defines which Cosmos DB database is being used (giapsearch).
 
 **2. Cosmos DB Containers Setup**
 
