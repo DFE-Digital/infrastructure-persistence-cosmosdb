@@ -1,5 +1,6 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Command;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
+using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Command.TestDouble;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.TestDoubles;
 using Microsoft.Azure.Cosmos;
 using Moq;
@@ -8,17 +9,6 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handler
 
 public class CosmosDbCommandHandlerTests
 {
-    private readonly Mock<ICosmosDbContainerProvider> _containerProviderMock;
-    private readonly Mock<Container> _containerMock;
-    private readonly CosmosDbCommandHandler _handler;
-
-    public CosmosDbCommandHandlerTests()
-    {
-        _containerMock = new Mock<Container>();
-        _containerProviderMock = ContainerProviderTestDouble.MockFor(_containerMock.Object);
-        _handler = new CosmosDbCommandHandler(_containerProviderMock.Object);
-    }
-
     [Fact]
     public void Constructor_NullProvider_ThrowsArgumentNullException()
     {
@@ -28,47 +18,79 @@ public class CosmosDbCommandHandlerTests
     [Fact]
     public async Task CreateItemAsync_WithPartitionKeyValue_CreatesItem()
     {
+        // arrange
         TestItem item = new() { Id = "1" };
-        Mock<ItemResponse<TestItem>> responseMock = MockItemResponse(item);
+        Mock<ItemResponse<TestItem>> responseMock =
+            MockItemResponseTestDouble.MockItemResponseFor(item);
+        Mock<Container> containerMock =
+            CosmosContainerTestDouble.MockCreateItemFor(responseMock.Object);
+        Mock<ICosmosDbContainerProvider> containerProviderMock =
+            ContainerProviderTestDouble.MockFor(containerMock.Object);
 
-        _containerMock.Setup(c => c.CreateItemAsync(item, It.IsAny<PartitionKey>(), null, default))
-            .ReturnsAsync(responseMock.Object);
+        // act
+        TestItem? result =
+            await new CosmosDbCommandHandler(
+                containerProviderMock.Object).CreateItemAsync(item, "containerKey", "1");
 
-        _containerProviderMock.Setup(p => p.GetContainerAsync("test")).ReturnsAsync(_containerMock.Object);
-
-        var result = await _handler.CreateItemAsync(item, "test", "1");
-
+        // assert/verify
         Assert.Equal(item, result);
+
+        containerMock.Verify(container =>
+            container.CreateItemAsync<TestItem>(
+                It.IsAny<TestItem>(),
+                It.Is<PartitionKey>(pk => pk == new PartitionKey("1")),
+                It.IsAny<ItemRequestOptions>(),
+                It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task UpdateItemAsync_WithPartitionKey_UpdatesItem()
     {
+        // arrange
         TestItem item = new() { Id = "1" };
+        Mock<ItemResponse<TestItem>> responseMock =
+            MockItemResponseTestDouble.MockItemResponseFor(item);
+        Mock<Container> containerMock =
+            CosmosContainerTestDouble.MockUpsertItemFor(responseMock.Object);
+        Mock<ICosmosDbContainerProvider> containerProviderMock =
+            ContainerProviderTestDouble.MockFor(containerMock.Object);
 
-        Mock<ItemResponse<TestItem>> responseMock = MockItemResponse(item);
+        // act
+        TestItem? result =
+            await new CosmosDbCommandHandler(containerProviderMock.Object)
+                .UpdateItemAsync(item, "containerKey", new PartitionKey("1"));
 
-        _containerMock.Setup(container =>
-            container.UpsertItemAsync(item, It.IsAny<PartitionKey>(), null, default))
-                .ReturnsAsync(responseMock.Object);
-        
-        _containerProviderMock.Setup(containerProvider =>
-            containerProvider.GetContainerAsync("test"))
-                .ReturnsAsync(_containerMock.Object);
-
-        TestItem result = await _handler.UpdateItemAsync(item, "test", new PartitionKey("1"));
-
+        // assert/verify
         Assert.Equal(item, result);
+
+        containerMock.Verify(container =>
+            container.UpsertItemAsync<TestItem>(
+                It.IsAny<TestItem>(),
+                It.Is<PartitionKey>(pk => pk == new PartitionKey("1")),
+                It.IsAny<ItemRequestOptions>(),
+                It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public Task DeleteItemAsync_WithPartitionKey_DeletesItem()
+    public async Task DeleteItemAsync_WithPartitionKey_DeletesItem()
     {
-        _containerMock.Setup(c => c.DeleteItemAsync<TestItem>("1", It.IsAny<PartitionKey>(), null, default))
-            .ReturnsAsync(Mock.Of<ItemResponse<TestItem>>());
-        _containerProviderMock.Setup(p => p.GetContainerAsync("test")).ReturnsAsync(_containerMock.Object);
+        // arrange
+        Mock<Container> containerMock =
+            CosmosContainerTestDouble.MockDeleteItemFor(Mock.Of<ItemResponse<TestItem>>());
+        Mock<ICosmosDbContainerProvider> containerProviderMock =
+            ContainerProviderTestDouble.MockFor(containerMock.Object);
 
-        return _handler.DeleteItemAsync<TestItem>("1", "test", new PartitionKey("1"));
+        // act
+        await new CosmosDbCommandHandler(containerProviderMock.Object)
+            .DeleteItemAsync<TestItem>("1", "containerKey", new PartitionKey("1"));
+
+        // verify
+        containerMock.Verify(container =>
+            container.DeleteItemAsync<TestItem>(
+                It.IsAny<string>(),
+                It.Is<PartitionKey>(pk => pk == new PartitionKey("1")),
+                It.IsAny<ItemRequestOptions>(),
+                It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]
@@ -76,16 +98,16 @@ public class CosmosDbCommandHandlerTests
     [InlineData("", typeof(ArgumentException))]
     public Task CreateItemAsync_NullPartitionKey_Throws(string? partitionKey, Type expectedException)
     {
+        // arrange
+        Mock<Container> containerMock =
+            CosmosContainerTestDouble.MockDeleteItemFor(Mock.Of<ItemResponse<TestItem>>());
+        Mock<ICosmosDbContainerProvider> containerProviderMock =
+            ContainerProviderTestDouble.MockFor(containerMock.Object);
+
         // Act, assert 
         return Assert.ThrowsAsync(expectedException, () =>
-             _handler.CreateItemAsync(new TestItem(), "test", partitionKey!));
-    }
-
-    private Mock<ItemResponse<T>> MockItemResponse<T>(T item) where T : class
-    {
-        var mock = new Mock<ItemResponse<T>>();
-        mock.Setup(r => r.Resource).Returns(item);
-        return mock;
+              new CosmosDbCommandHandler(
+                containerProviderMock.Object).CreateItemAsync(new TestItem(), "test", partitionKey!));
     }
 
     public class TestItem

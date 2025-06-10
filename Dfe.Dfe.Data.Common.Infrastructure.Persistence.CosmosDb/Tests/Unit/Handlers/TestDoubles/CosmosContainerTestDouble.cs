@@ -4,115 +4,143 @@ using Moq;
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.TestDoubles;
 
 /// <summary>
-/// Provides a mocked instance of a Cosmos DB container for testing purposes.
+/// Provides utility methods for mocking Cosmos DB containers in unit tests.
 /// </summary>
 internal static class CosmosContainerTestDouble
 {
     /// <summary>
-    /// Creates a default mock of the Cosmos DB container.
+    /// Creates a default mock instance of a Cosmos DB container.
     /// </summary>
-    /// <returns>
-    /// A mocked instance of a cosmos db container.
-    /// </returns>
+    /// <returns>A mocked <see cref="Container"/> instance.</returns>
     public static Mock<Container> DefaultMock() => new();
 
     /// <summary>
-    /// Mocks the ReadItemAsync method of the Cosmos DB container to return a specified response.
+    /// Mocks the <see cref="ReadItemAsync{T}"/> method to return a specified response.
     /// </summary>
-    /// <typeparam name="TResponse">
-    /// The type of the response expected from the ReadItemAsync method.
-    /// </typeparam>
-    /// <param name="response">
-    /// The response returned by the mocked read method call.
-    /// </param>
-    /// <returns>
-    /// A mocked instance of the Cosmos DB container with the specified response for ReadItemAsync.
-    /// </returns>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The mocked response object.</param>
+    /// <returns>A <see cref="Mock{T}"/> of <see cref="Container"/> with predefined read behavior.</returns>
     public static Mock<Container> MockFor<TResponse>(ItemResponse<TResponse> response)
     {
         Mock<Container> containerMock = DefaultMock();
 
-        containerMock
-            .Setup(container => container.ReadItemAsync<TResponse>(
-                It.IsAny<string>(),
-                It.IsAny<PartitionKey>(), default, default))
-            .ReturnsAsync(response).Verifiable();
+        // Configure the mock to return a predefined response when ReadItemAsync is called.
+        containerMock.Setup(container => container.ReadItemAsync<TResponse>(
+            It.IsAny<string>(),
+            It.IsAny<PartitionKey>(),
+            default, default))
+            .ReturnsAsync(response)
+            .Verifiable();
 
         return containerMock;
     }
 
     /// <summary>
-    /// Mocks the GetItemQueryIterator method of the Cosmos DB container to return a specified response.
+    /// Mocks the <see cref="GetItemQueryIterator{T}"/> method to return a predefined query response.
     /// </summary>
-    /// <typeparam name="TResponse">
-    /// The type of the response expected from the GetItemQueryIterator method.
-    /// </typeparam>
-    /// <param name="response">
-    /// The response returned by the mocked GetItemQueryIterator method call.
-    /// </param>
-    /// <returns>
-    /// A mocked instance of the Cosmos DB container with the specified response for GetItemQueryIterator.
-    /// </returns>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The mocked <see cref="FeedIterator{T}"/> object.</param>
+    /// <returns>A mock of <see cref="Container"/> with query iterator setup.</returns>
     public static Mock<Container> MockFor<TResponse>(FeedIterator<TResponse> response)
     {
         Mock<Container> containerMock = DefaultMock();
 
-        containerMock
-            .Setup(container =>
-                container.GetItemQueryIterator<TResponse>(
-                    It.IsAny<QueryDefinition>(),
-                    It.IsAny<string>(),
-                    It.IsAny<QueryRequestOptions>()))
-            .Returns(response).Verifiable();
+        // Setup mock to return predefined query iterator results.
+        containerMock.Setup(container =>
+            container.GetItemQueryIterator<TResponse>(
+                It.IsAny<QueryDefinition>(),
+                It.IsAny<string>(),
+                It.IsAny<QueryRequestOptions>()))
+            .Returns(response)
+            .Verifiable();
 
-        containerMock
-            .SetupGet(container =>
-                container.Database).Returns(new Mock<Database>().Object);
+        // Setup the mock to return a mocked Database instance when accessed.
+        containerMock.SetupGet(container => container.Database)
+            .Returns(new Mock<Database>().Object)
+            .Verifiable();
 
         return containerMock;
     }
 
     /// <summary>
-    /// Sets up a mock for <see cref="Container"/> to return a specified IOrderedQueryable<TResponse>.
+    /// Mocks the <see cref="GetItemLinqQueryable{T}"/> method for LINQ queries.
     /// </summary>
-    /// <typeparam name="TResponse">
-    /// The type of the response items.
-    /// </typeparam>
-    /// <param name="response">
-    /// The IOrderedQueryable<TResponse> to be returned by the mock.
-    /// </param>
-    /// <returns>
-    /// A mock object of type <see cref="Container"/> set up to return the specified IOrderedQueryable<TResponse>.
-    /// </returns>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The <see cref="IOrderedQueryable{T}"/> response.</param>
+    /// <returns>A mock of <see cref="Container"/> that supports LINQ queries.</returns>
     public static Mock<Container> MockFor<TResponse>(IOrderedQueryable<TResponse> response)
     {
-        // Create a default mock object for Container.
         Mock<Container> containerMock = DefaultMock();
 
-        // Setup the mock to return the provided response when GetItemLinqQueryable is called.
-        containerMock.Setup(container =>
-            container.GetItemLinqQueryable<TResponse>(
-                It.IsAny<bool>(),
-                It.IsAny<string>(),
-                It.IsAny<QueryRequestOptions>(),
-                It.IsAny<CosmosLinqSerializerOptions>()))
+        // Configure the mock to return a predefined response for LINQ queries.
+        containerMock.Setup(container => container.GetItemLinqQueryable<TResponse>(
+            It.IsAny<bool>(),
+            It.IsAny<string>(),
+            It.IsAny<QueryRequestOptions>(),
+            It.IsAny<CosmosLinqSerializerOptions>()))
             .Returns(response);
 
-        // Setup the mock to return a new mock Database object when the Database property is accessed.
-        containerMock
-            .SetupGet(container =>
-                container.Database).Returns(new Mock<Database>().Object);
+        // Setup a mocked Database instance for consistency.
+        containerMock.SetupGet(container => container.Database)
+            .Returns(new Mock<Database>().Object)
+            .Verifiable();
 
         return containerMock;
     }
 
-    public static Mock<Container> MockXXXXFor<TResponse>(TResponse response)
+    /// <summary>
+    /// Mocks the <see cref="CreateItemAsync{T}"/> method for item creation.
+    /// </summary>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The mocked item response.</param>
+    /// <returns>A mock of <see cref="Container"/> with predefined item creation behavior.</returns>
+    public static Mock<Container> MockCreateItemFor<TResponse>(ItemResponse<TResponse> response)
     {
-        // Create a default mock object for Container.
         Mock<Container> containerMock = DefaultMock();
 
-        //containerMock.Setup(c => c.CreateItemAsync(response, It.IsAny<PartitionKey>(), null, default))
-        //.ReturnsAsync(response).Verifiable();
+        // Setup mock to return predefined response for CreateItemAsync.
+        containerMock.Setup(container =>
+            container.CreateItemAsync(response.Resource, It.IsAny<PartitionKey>(), null, default))
+            .ReturnsAsync(response)
+            .Verifiable();
+
+        return containerMock;
+    }
+
+    /// <summary>
+    /// Mocks the <see cref="UpsertItemAsync{T}"/> method for item upsertion.
+    /// </summary>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The mocked upsert item response.</param>
+    /// <returns>A mock of <see cref="Container"/> supporting upsert operations.</returns>
+    public static Mock<Container> MockUpsertItemFor<TResponse>(ItemResponse<TResponse> response)
+    {
+        Mock<Container> containerMock = DefaultMock();
+
+        // Configure mock to return predefined response for UpsertItemAsync.
+        containerMock.Setup(container =>
+            container.UpsertItemAsync(response.Resource, It.IsAny<PartitionKey>(), null, default))
+            .ReturnsAsync(response)
+            .Verifiable();
+
+        return containerMock;
+    }
+
+    /// <summary>
+    /// Mocks the <see cref="DeleteItemAsync{T}"/> method for item deletion.
+    /// </summary>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The mocked delete item response.</param>
+    /// <returns>A mock of <see cref="Container"/> supporting item deletion.</returns>
+    public static Mock<Container> MockDeleteItemFor<TResponse>(ItemResponse<TResponse> response)
+    {
+        Mock<Container> containerMock = DefaultMock();
+
+        // Setup mock to return predefined response for DeleteItemAsync.
+        containerMock.Setup(container =>
+            container.DeleteItemAsync<TResponse>(It.IsAny<string>(), It.IsAny<PartitionKey>(), null, default))
+            .ReturnsAsync(response)
+            .Verifiable();
 
         return containerMock;
     }
