@@ -67,6 +67,50 @@ serviceCollection.AddCosmosDbDependencies();
 var serviceProvider = serviceCollection.BuildServiceProvider();
 ```
 
+**Configuration Setup**
+In order to use the handlers to access specific repositories it is essential to add the required configuration repository options to the application settings file, specifying essential connection details, authentication, and container configurations. The following steps cover the setup process:
+
+**1. RepositoryOptions Configuration**
+
+This section defines global settings for your Cosmos DB connection:
+
+```
+"RepositoryOptions": {
+  "EndpointUri": "ADD_ENPOINT_URI_HERE",
+  "PrimaryKey": "ADD_PRIMARY_KEY_HERE",
+  "DatabaseId": "ADD_DATABASE_ID_HERE",
+```
+- **EndpointUri:** The Cosmos DB instance URL, used to connect from applications.
+
+- **PrimaryKey:** Authentication key—should be kept secure using environment variables or a secret vault (like Azure Key Vault).
+
+- ** DatabaseId: ** Defines which Cosmos DB database is being used (giapsearch).
+
+**2. Cosmos DB Containers Setup**
+
+Each Cosmos DB container is specified with its name and partition key:
+
+```
+"Containers": [
+  {
+    "container-name-example-1": {
+      "ContainerName": "ADD_UNIQUE_CONTAINER_NAME_HERE",
+      "PartitionKey": "ADD_PARTITION_KEY_HERE"
+    }
+  },
+  {
+    "container-name-example-2": {
+      "ContainerName": "ADD_UNIQUE_CONTAINER_NAME_HERE",
+      "PartitionKey": "ADD_PARTITION_KEY_HERE"
+    }
+  }
+]
+```
+- **ContainerName:** Defines specific data storage areas in Cosmos DB.
+
+- **PartitionKey:** Helps optimize query performance.
+
+
 ## Example Usage
 **Command Handler (Create, Update, Delete)**
 
