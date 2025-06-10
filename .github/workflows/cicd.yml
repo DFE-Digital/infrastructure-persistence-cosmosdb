@@ -1,7 +1,7 @@
 name: CI/CD
 
 on:
-  pull_request: 
+  pull_request:
   push:
     branches:
       - main
@@ -22,7 +22,7 @@ jobs:
           AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: true
 
     steps:
-    - name: Checkout
+    - name: Checkout Code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -37,36 +37,24 @@ jobs:
       with:
         versionSpec: '6.0.x'
 
-    - name: Determine generated version number
-      id: version_step # step id used as reference for output values
+    - name: Determine Generated Version Number
+      id: version_step
       uses: gittools/actions/gitversion/execute@v3.0.0
 
-    - name: Determine version number to use
+    - name: Set Version Variables for Build
       run: |
-        ## Default to using the version from GitVersion
-        version=${{ steps.version_step.outputs.fullSemVer }}
-        
-        ## If this is a tag, use the version from the tag
-        if [[ ${{ github.event_name }} == 'push' && ${{ github.ref }} == 'refs/tags/v*' ]]; then
-          version=${{ github.ref_name }}
-          version=${version:1} ## Remove the leading 'v'
-        fi
-        
-        echo "Version to use: $version"
-        echo "VERSION=$version" >> $GITHUB_ENV
-        
-    - name: Restore dependencies
+        echo "VERSION=${{ steps.version_step.outputs.semVer }}" >> $GITHUB_ENV
+        echo "VERSION_MAJOR=${{ steps.version_step.outputs.major }}" >> $GITHUB_ENV
+        echo "VERSION_MINOR=${{ steps.version_step.outputs.minor }}" >> $GITHUB_ENV
+        echo "VERSION_PATCH=${{ steps.version_step.outputs.patch }}" >> $GITHUB_ENV
+
+    - name: Restore Dependencies
       run: dotnet restore
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Install .NET 8
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.x
-    - name: Install SSL certificate
+    - name: Build with Semantic Versioning
+      run: dotnet build --configuration Release /p:Version=$VERSION /p:AssemblyVersion=$VERSION_MAJOR.$VERSION_MINOR.0.0 /p:FileVersion=$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH.0 /p:InformationalVersion=$VERSION
+
+    - name: Install SSL Certificate for Cosmos DB Emulator
       run: |
         retry_count=0
         max_retry_count=10
@@ -75,52 +63,49 @@ jobs:
             echo "Failed to download certificate after $retry_count attempts."
             exit 1
           fi
-          echo "Failed to download certificate. Retrying in 5 seconds..."
           sleep 5
           retry_count=$((retry_count+1))
         done
         sudo update-ca-certificates
-    - name: Run .NET test
+
+    - name: Run .NET Tests
       run: dotnet test --logger "console" --logger "trx;verbosity=detailed"
       env:
         COSMOSDB__CONNECTIONSTRING: "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 
-    - name: Pack
-      run: |
-        dotnet pack --configuration Debug --output ./nupkg /p:PackageVersion=$VERSION
+    - name: Pack NuGet Package with SemVer
+      run: dotnet pack --configuration Debug --output ./nupkg /p:PackageVersion=$VERSION
 
-    - name: Upload NuGet package (for use by later jobs)
+    - name: Upload NuGet Package Artifact
       uses: actions/upload-artifact@v4
       with:
         name: nupkg
         path: ./nupkg/*.nupkg
 
   publish:
-    ## Only attempt to publish if the build job was successful
     needs: build_test_pack
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout Code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Download NuGet package
+    - name: Download NuGet Package
       uses: actions/download-artifact@v4
       with:
         name: nupkg
         path: ./nupkg
 
-    ## Publish to GitHub Packages - including pre-release versions
-    - name: Publish to GitHub
+    - name: Publish to GitHub Packages
       env:
         NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
       run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://nuget.pkg.github.com/DFE-Digital/index.json"
 
-    ## Publish to NuGet.org - only for main branch pushes
-    ##- name: Publish to NuGet.org
-    ##  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    ##  env:
-    ##    NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-    ##  run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
+    ## Uncomment to publish stable releases to NuGet.org
+    ## - name: Publish to NuGet.org
+    ##   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    ##   env:
+    ##     NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    ##   run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"

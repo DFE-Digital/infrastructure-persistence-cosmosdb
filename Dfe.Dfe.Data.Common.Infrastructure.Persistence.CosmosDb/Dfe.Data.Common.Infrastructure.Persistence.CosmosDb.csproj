@@ -20,6 +20,13 @@
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
+  <PropertyGroup>
+	<Version>${VERSION}</Version>
+	<AssemblyVersion>$(VERSION_MAJOR).$(VERSION_MINOR).0.0</AssemblyVersion>
+	<FileVersion>$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).0</FileVersion>
+	<InformationalVersion>$(VERSION)</InformationalVersion>
+  </PropertyGroup>
+
   <ItemGroup>
 	<None Include="../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
