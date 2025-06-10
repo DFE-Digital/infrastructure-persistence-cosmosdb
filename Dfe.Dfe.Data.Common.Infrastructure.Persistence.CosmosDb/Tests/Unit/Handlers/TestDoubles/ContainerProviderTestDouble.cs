@@ -2,7 +2,7 @@
 using Microsoft.Azure.Cosmos;
 using Moq;
 
-namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Query.TestDoubles;
+namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.TestDoubles;
 
 /// <summary>
 /// Test double for the <see cref="ICosmosDbContainerProvider"/> interface.

@@ -12,7 +12,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 /// </summary>
 public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
 {
-    private readonly ILogger<CosmosDbContainerProvider> _logger;
+    private readonly ILogger<ICosmosDbContainerProvider> _logger;
     private readonly ICosmosDbClientProvider _cosmosClientProvider;
     private readonly RepositoryOptions _repositoryOptions;
 
@@ -24,7 +24,7 @@ public sealed class CosmosDbContainerProvider : ICosmosDbContainerProvider
     /// <param name="repositoryOptions">Configuration options for Cosmos DB containers.</param>
     /// <exception cref="ArgumentNullException">Thrown if any dependencies are null.</exception>
     public CosmosDbContainerProvider(
-        ILogger<CosmosDbContainerProvider> logger,
+        ILogger<ICosmosDbContainerProvider> logger,
         ICosmosDbClientProvider cosmosClientProvider,
         IOptions<RepositoryOptions> repositoryOptions)
     {

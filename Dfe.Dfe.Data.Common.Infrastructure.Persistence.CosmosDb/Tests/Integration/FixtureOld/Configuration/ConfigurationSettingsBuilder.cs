@@ -14,13 +14,13 @@ public sealed class ConfigurationSettingsBuilder
     /// <returns>An IConfiguration object built from the in-memory collection.</returns>
     public IConfiguration SetupConfiguration(IDictionary<string, string?> configurationSettings)
     {
-        // Create a new instance of ConfigurationBuilder
+        // Create a new instance of ConfigurationBuilder.
         ConfigurationBuilder configBuilder = new();
 
-        // Add the provided settings to the configuration builder as an in-memory collection
+        // Add the provided settings to the configuration builder as an in-memory collection.
         configBuilder.AddInMemoryCollection(configurationSettings);
 
-        // Build and return the IConfiguration object
+        // Build and return the IConfiguration object.
         return configBuilder.Build();
     }
 }

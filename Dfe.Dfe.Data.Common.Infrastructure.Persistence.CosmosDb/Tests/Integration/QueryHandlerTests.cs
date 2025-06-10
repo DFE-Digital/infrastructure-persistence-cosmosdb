@@ -6,79 +6,89 @@ using System.Linq.Expressions;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration;
 
-public sealed class QueryHandlerTests
+[Collection(QueryIntegrationTestCollection.Name)]
+public sealed class CosmosDbQueryHandlerTests
 {
-    [Fact]
-    public async Task ReadItemsAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
+    private readonly CosmosDbHandlerFixture<ICosmosDbQueryHandler> _fixture;
+
+    public CosmosDbQueryHandlerTests(CosmosDbHandlerFixture<ICosmosDbQueryHandler> fixture)
     {
-        var (queryHandler, context, _) =
-            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
-
-        try
-        {
-            var results = await queryHandler.ReadItemsAsync<ContainerRecord>(
-                containerKey: "test-container",
-                query: "SELECT TOP 10 * FROM c");
-
-            results.Should().NotBeNullOrEmpty()
-                .And.HaveCount(10)
-                .And.AllBeAssignableTo<ContainerRecord>();
-        }
-        finally
-        {
-            context.CleanUpResources();
-        }
+        _fixture = fixture;
+        ContainerName = fixture.ContainerName;
     }
+
+    private string ContainerName { get; }
 
     [Fact]
     public async Task ReadItemByIdAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResult()
     {
-        var (queryHandler, context, records) =
-            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
+        // arrange
+        IEnumerable<ContainerRecord>? allItems =
+            await _fixture.Handler.ReadItemsAsync<ContainerRecord>(
+                containerKey: ContainerName,
+                query: "SELECT * FROM c");
 
-        try
-        {
-            var itemId = records.First().id;
+        if (!allItems.Any()){
+            Assert.Fail($"{ContainerName} does not contain any items to read by ID.");
+        }
 
-            var result = await queryHandler.ReadItemByIdAsync<ContainerRecord>(
+        var itemId = allItems.First().id;
+
+        // act
+        ContainerRecord? result =
+            await _fixture.Handler.ReadItemByIdAsync<ContainerRecord>(
                 id: itemId,
-                containerKey: "test-container",
+                containerKey: ContainerName,
                 partitionKeyValue: itemId);
 
-            result.Should().NotBeNull()
-                .And.BeAssignableTo<ContainerRecord>();
-        }
-        finally
-        {
-            context.CleanUpResources();
-        }
+        // assert
+        result.Should().NotBeNull()
+            .And.BeAssignableTo<ContainerRecord>();
+
+        await Task.Delay(1000);
     }
 
     [Fact]
     public async Task ReadItemsAsync_WithLambda_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
-        var (queryHandler, context, records) =
-            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbQueryHandler>();
+        // arrange
+        IEnumerable<ContainerRecord> allItems =
+            await _fixture.Handler.ReadItemsAsync<ContainerRecord>(
+                containerKey: ContainerName,
+                query: "SELECT * FROM c");
 
-        try
-        {
-            var itemId = records.First().id;
+        var itemId = allItems.First().id;
 
-            Expression<Func<ContainerRecord, bool>> predicate = item => item.id.Contains(itemId);
-            Expression<Func<ContainerRecord, ContainerRecord>> selector = _ => new ContainerRecord { id = itemId };
+        Expression<Func<ContainerRecord, bool>> predicate = item => item.id == itemId;
+        Expression<Func<ContainerRecord, ContainerRecord>> selector = item => new ContainerRecord { id = item.id };
 
-            var results = await queryHandler.ReadItemsAsync<ContainerRecord>(
-                containerKey: "test-container",
+        // act
+        IEnumerable<ContainerRecord> results =
+            await _fixture.Handler.ReadItemsAsync(
+                containerKey: ContainerName,
                 selector: selector,
                 predicate: predicate);
 
-            results.Should().NotBeNullOrEmpty()
-                .And.HaveCount(1)
-                .And.AllBeAssignableTo<ContainerRecord>();
-        }
-        finally
-        {
-            context.CleanUpResources();
-        }
+        // assert
+        results.Should().NotBeNullOrEmpty()
+            .And.HaveCount(1)
+            .And.AllBeAssignableTo<ContainerRecord>();
+
+        await Task.Delay(1000);
+    }
+
+    [Fact]
+    public async Task ReadItemsAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
+    {
+        IEnumerable<ContainerRecord> results =
+            await _fixture.Handler.ReadItemsAsync<ContainerRecord>(
+                containerKey: ContainerName,
+                query: "SELECT * FROM c");
+
+        results.Should().NotBeNullOrEmpty()
+            .And.HaveCountGreaterThan(100)
+            .And.AllBeAssignableTo<ContainerRecord>();
+
+        await Task.Delay(1000);
     }
 }

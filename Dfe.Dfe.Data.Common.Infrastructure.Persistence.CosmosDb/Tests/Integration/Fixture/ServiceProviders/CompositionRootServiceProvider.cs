@@ -15,17 +15,17 @@ public sealed class CompositionRootServiceProvider
     /// </summary>
     /// <param name="configuration">The application configuration to be injected into services.</param>
     /// <returns>An IServiceProvider instance with all necessary services registered.</returns>
-    public IServiceProvider SetUpServiceProvider(IConfiguration configuration)
+    public IServiceProvider ConfigureServiceProvider(IConfiguration configuration)
     {
-        // Create a new service collection to register dependencies
+        // Create a new service collection to register dependencies.
         IServiceCollection services = new ServiceCollection();
-        // Add logging services to the container
+        // Add logging services to the container.
         services.AddLogging();
-        // Register the provided configuration as a singleton service
+        // Register the provided configuration as a singleton service.
         services.AddSingleton(configuration);
-        // Register Cosmos DB-related dependencies (defined in external library)
+        // Register Cosmos DB-related dependencies (defined in external library).
         services.AddCosmosDbDependencies();
-        // Build and return the service provider
+        // Build and return the service provider.
         return services.BuildServiceProvider();
     }
 }

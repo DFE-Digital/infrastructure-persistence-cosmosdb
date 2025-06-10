@@ -5,6 +5,7 @@ using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace DfE.Data.ComponentLibrary.Infrastructure.Persistence.CosmosDb;
 
@@ -35,11 +36,15 @@ public static class CompositionRoot
                     configuration.GetSection(nameof(RepositoryOptions)).Bind(settings));
 
         // Register Cosmos DB providers and repositories as singleton services.
-        services.TryAddSingleton<ICosmosDbClientProvider, CosmosDbClientProvider>();
-        services.TryAddSingleton<ICosmosDbContainerProvider, CosmosDbContainerProvider>();
-        services.TryAddSingleton<ICosmosDbQueryHandler, CosmosDbQueryHandler>();
-        services.TryAddSingleton<IQueryableToFeedIterator, QueryableToFeedIterator>();
-        services.TryAddSingleton<ICosmosDbCommandHandler, CosmosDbCommandHandler>();
+        services.TryAddSingleton<ICosmosDbClientProvider, CosmosDbClientProvider>(); // Provides Cosmos DB client instance
+        services.TryAddSingleton<ICosmosDbContainerProvider, CosmosDbContainerProvider>(); // Manages Cosmos DB containers
+        services.TryAddSingleton<ICosmosDbQueryHandler, CosmosDbQueryHandler>(); // Handles query operations for Cosmos DB
+        services.TryAddSingleton<IQueryableToFeedIterator, QueryableToFeedIterator>(); // Converts IQueryable to FeedIterator
+        services.TryAddSingleton<ICosmosDbCommandHandler, CosmosDbCommandHandler>(); // Handles commands (write operations) in Cosmos DB
+        services.TryAddSingleton<ILoggerFactory, LoggerFactory>();
+        services.TryAddSingleton(provider =>
+            provider.GetRequiredService<ILoggerFactory>().CreateLogger<ICosmosDbContainerProvider>());
+
 
         return services;
     }

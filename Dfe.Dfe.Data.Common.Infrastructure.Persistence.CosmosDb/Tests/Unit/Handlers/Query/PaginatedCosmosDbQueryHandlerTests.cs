@@ -2,6 +2,7 @@
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Query.TestDoubles;
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Query.TestDoubles.Shared;
+using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.TestDoubles;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Moq;

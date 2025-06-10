@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Moq;
 
-namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Query.TestDoubles;
+namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.TestDoubles;
 
 /// <summary>
 /// Provides a mocked instance of a Cosmos DB container for testing purposes.
@@ -102,6 +102,17 @@ internal static class CosmosContainerTestDouble
         containerMock
             .SetupGet(container =>
                 container.Database).Returns(new Mock<Database>().Object);
+
+        return containerMock;
+    }
+
+    public static Mock<Container> MockXXXXFor<TResponse>(TResponse response)
+    {
+        // Create a default mock object for Container.
+        Mock<Container> containerMock = DefaultMock();
+
+        //containerMock.Setup(c => c.CreateItemAsync(response, It.IsAny<PartitionKey>(), null, default))
+        //.ReturnsAsync(response).Verifiable();
 
         return containerMock;
     }

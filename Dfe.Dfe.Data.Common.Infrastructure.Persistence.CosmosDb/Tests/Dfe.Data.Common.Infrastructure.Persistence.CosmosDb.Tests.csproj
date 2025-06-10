@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Integration\FixtureOld\**" />
+    <EmbeddedResource Remove="Integration\FixtureOld\**" />
+    <None Remove="Integration\FixtureOld\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 	<PackageReference Include="Bogus" Version="34.0.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.31.0" />
@@ -30,6 +36,10 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Unit\Handlers\Command\TestDouble\" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
 /// <summary>
 /// Provides functionality to create and populate a Cosmos DB instance for integration testing.
 /// </summary>
-public sealed class CosmosDbContext
+public class CosmosDbContext : IDisposable
 {
     /// <summary>
     /// The Cosmos DB client instance used for testing.
@@ -30,7 +30,7 @@ public sealed class CosmosDbContext
         IReadOnlyCollection<TContainerRecord> containerRecords)
         where TContainerRecord : class, IContainerRecord
     {
-        // Initialize the Cosmos DB client with bulk execution and gateway mode
+        // Initialize the Cosmos DB client with bulk execution and gateway mode.
         Client = new CosmosClient(
             repositoryOptions.EndpointUri,
             repositoryOptions.PrimaryKey,
@@ -40,40 +40,43 @@ public sealed class CosmosDbContext
                 ConnectionMode = ConnectionMode.Gateway
             });
 
-        // Create the database if it doesn't already exist
+        // Create the database if it doesn't already exist.
         DatabaseInstance = await Client.CreateDatabaseIfNotExistsAsync(repositoryOptions.DatabaseId);
 
-        // Get the container key from the first container configuration
+        // Get the container key from the first container configuration.
         string? containerKey = repositoryOptions?.Containers?[0].First().Key;
-        // Define and create the container with a consistent indexing policy
+
+        // Define and create the container with a consistent indexing policy.
         await DatabaseInstance.DefineContainer(containerKey, "/pk")
             .WithIndexingPolicy()
             .WithIndexingMode(IndexingMode.Consistent)
-            .WithIncludedPaths() // No specific included paths defined
+            .WithIncludedPaths() // No specific included paths defined.
                 .Attach()
-            .WithExcludedPaths() // Exclude all paths from indexing
+            .WithExcludedPaths() // Exclude all paths from indexing.
                 .Path("/*")
                 .Attach()
             .Attach()
-            .CreateAsync(containerRecords.Count); // Set throughput based on record count
+            .CreateAsync(containerRecords.Count); // Set throughput based on record count.
 
-        // Get a reference to the newly created container
+        // Get a reference to the newly created container.
         Container container = DatabaseInstance.GetContainer(containerKey);
 
-        // Prepare tasks to insert each record into the container
+        // Prepare tasks to insert each record into the container.
         List<Task> createRecordTasks = new(containerRecords.Count);
 
-        // Add a create item task for each record
+        // Add a create item task for each record.
         containerRecords.ToList()
-            .ForEach(containerRecord =>
+            .ForEach(async containerRecord =>{
+                await Task.Delay(500); // Simulate a delay for each record insertion.
                 createRecordTasks.Add(
-                    container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.id))));
+                    container.CreateItemAsync(containerRecord, new PartitionKey(containerRecord.id)));
+            });
 
-        // Wait for all insert operations to complete
+        // Wait for all insert operations to complete.
         await Task.WhenAll(createRecordTasks);
     }
 
-    // Flag to ensure cleanup is only performed once
+    // Flag to ensure cleanup is only performed once.
     private bool _clientDisposed;
 
     /// <summary>
@@ -83,14 +86,45 @@ public sealed class CosmosDbContext
     {
         if (!_clientDisposed)
         {
-            // Delete the database asynchronously and wait for it to complete
+            // Delete the database asynchronously and wait for it to complete.
             Task.Run(async () =>
                 await DatabaseInstance.DeleteAsync()).Wait();
 
-            // Dispose the Cosmos DB client
+            // Dispose the Cosmos DB client.
             Client?.Dispose();
 
             _clientDisposed = true;
+        }
+
+        Task.Delay(5000).Wait(); // Wait for five seconds to ensure all operations are complete.
+    }
+
+    private bool _contextDisposed;
+
+    /// <summary>
+    /// Disposes the fixture and cleans up Cosmos DB resources.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this); // Prevent finaliser from running.
+    }
+
+    /// <summary>
+    /// Protected dispose pattern implementation to allow sub-classing.
+    /// </summary>
+    /// <param name="disposing">True if called from Dispose(), false if from finaliser.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_contextDisposed)
+        {
+            if (disposing)
+            {
+                // Clean up Cosmos DB resources.
+                CleanUpResources();
+            }
+
+            _contextDisposed = true;
         }
     }
 }

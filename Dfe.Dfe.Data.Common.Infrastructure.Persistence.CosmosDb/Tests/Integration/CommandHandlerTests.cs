@@ -7,97 +7,91 @@ using System.Net;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration;
 
+[Collection(CommandIntegrationTestCollection.Name)]
 public sealed class CommandHandlerTests
 {
+    private readonly CosmosDbHandlerFixture<ICosmosDbCommandHandler> _fixture;
+
+    public CommandHandlerTests(CosmosDbHandlerFixture<ICosmosDbCommandHandler> fixture)
+    {
+        _fixture = fixture;
+        ContainerName = fixture.ContainerName;
+    }
+
+    private string ContainerName { get; }
+
     [Fact]
     public async Task CreateItemAsync_CreatesItemAndReturnsResult()
     {
-        var (commandHandler, context, _) =
-            await new CosmosDbTestHelper().CreateIsolatedHandlerAsync<ICosmosDbCommandHandler>();
+        // arrange
+        string itemKey = Guid.NewGuid().ToString();
 
-        try
-        {
-            string itemKey = Guid.NewGuid().ToString();
-
-            var result = await commandHandler.CreateItemAsync<ContainerRecord>(
-                item: ContainerRecord.Create(id: itemKey, username: "Test User"),
-                containerKey: "test-container",
+        // act
+        ContainerRecord? result =
+            await _fixture.Handler.CreateItemAsync<ContainerRecord>(
+                item: ContainerRecord.Create(id: itemKey, username: new Bogus.Faker().Name.FullName()),
+                containerKey: ContainerName,
                 partitionKeyValue: itemKey);
 
-            result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
-        }
-        finally
-        {
-            context.CleanUpResources();
-        }
+        // assert
+        result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
+
+        await Task.Delay(1000);
     }
 
     [Fact]
     public async Task UpdateItemAsync_UpdatesItemAndReturnsResult()
     {
-        CosmosDbTestHelper cosmosDbTestHelper = new();
+        // arrange
+        IReadOnlyCollection<ContainerRecord>? containerRecords = _fixture.ContainerRecords;
 
-        var (commandHandler, context, _) =
-            await cosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbCommandHandler>();
+        var faker = new Bogus.Faker();
+        // Reference an existing record.
+        string itemKey = containerRecords!.ElementAt(faker.Random.Number(10, 100)).id;
+        string updatedUsername = faker.Name.FullName();
 
-        IReadOnlyCollection<ContainerRecord>? containerRecords = cosmosDbTestHelper.ContainerRecords;
-
-        try
-        {
-            // Reference an existing record.
-            string itemKey = containerRecords!.First().id;
-            const string updatedUsername = "Updated Test User";
-
-            var result = await commandHandler.UpdateItemAsync<ContainerRecord>(
+        // act
+        ContainerRecord? result =
+            await _fixture.Handler.UpdateItemAsync<ContainerRecord>(
                 item: ContainerRecord.Create(id: itemKey, username: updatedUsername),
-                containerKey: "test-container",
+                containerKey: ContainerName,
                 partitionKeyValue: itemKey);
 
-            result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
-            result.username.Should().Be(updatedUsername);
-            result.id.Should().Be(itemKey);
-        }
-        finally
-        {
-            context.CleanUpResources();
-        }
+        // assert
+        result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
+        result.username.Should().Be(updatedUsername);
+        result.id.Should().Be(itemKey);
+
+        await Task.Delay(1000);
     }
 
     [Fact]
     public async Task DeleteItemAsync_DeletesItemSuccessfully()
     {
-        CosmosDbTestHelper cosmosDbTestHelper = new();
+        // arrange
+        IReadOnlyCollection<ContainerRecord>? containerRecords = _fixture.ContainerRecords;
 
-        var (commandHandler, context, _) =
-            await cosmosDbTestHelper.CreateIsolatedHandlerAsync<ICosmosDbCommandHandler>();
+        var faker = new Bogus.Faker();
+        // Reference an existing record.
+        string itemKey = containerRecords!.ElementAt(faker.Random.Number(10, 100)).id;
 
-        IReadOnlyCollection<ContainerRecord>? containerRecords = cosmosDbTestHelper.ContainerRecords;
+        // assert
+        await _fixture.Handler.DeleteItemAsync<ContainerRecord>(
+            id: itemKey,
+            containerKey: ContainerName,
+            partitionKeyValue: itemKey);
 
-        try
-        {
-            // Reference an existing record.
-            string itemKey = containerRecords!.First().id;
+        await Task.Delay(1000);
 
-            await commandHandler.DeleteItemAsync<ContainerRecord>(
-                id: itemKey,
-                containerKey: "test-container",
-                partitionKeyValue: itemKey);
+        // Act - Try retrieving the deleted item
+        Func<Task> getDeletedItem = async () =>
+            await _fixture.Handler.DeleteItemAsync<ContainerRecord>(
+            id: itemKey,
+            containerKey: ContainerName,
+            partitionKeyValue: itemKey);
 
-            // Check for successful deletion by attempting to update.
-            await commandHandler.DeleteItemAsync<ContainerRecord>(
-                id: itemKey,
-                containerKey: "test-container",
-                partitionKeyValue: itemKey);
-
-        }
-        catch (CosmosException ex)
-        {
-            // Check if the exception is due to the item not being found.
-            ex.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-        finally
-        {
-            context.CleanUpResources();
-        }
+        // Assert - Confirm item no longer exists (throws NotFound)
+        await getDeletedItem.Should().ThrowAsync<CosmosException>()
+            .Where(ex => ex.StatusCode == HttpStatusCode.NotFound);
     }
 }
