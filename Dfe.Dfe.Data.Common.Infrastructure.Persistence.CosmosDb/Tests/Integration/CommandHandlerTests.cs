@@ -58,7 +58,8 @@ public sealed class CommandHandlerTests
                 partitionKeyValue: itemKey);
 
         // assert
-        result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
+        result.Should().NotBeNull().
+            And.BeAssignableTo<CosmosDbCommandHandlerResponse<ContainerRecord>>();
         result.Item.Should().NotBeNull();
         result.Item!.username.Should().Be(updatedUsername);
         result.Item!.id.Should().Be(itemKey);
