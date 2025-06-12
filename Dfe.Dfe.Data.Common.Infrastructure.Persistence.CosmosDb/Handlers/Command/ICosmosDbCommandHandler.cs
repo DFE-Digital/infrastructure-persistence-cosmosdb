@@ -16,8 +16,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created item.</returns>
-    public Task<TItem> CreateItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous create operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> CreateItemAsync<TItem>(
         TItem item,
         string containerKey,
         string partitionKeyValue,
@@ -31,8 +34,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created item.</returns>
-    public Task<TItem> CreateItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous create operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> CreateItemAsync<TItem>(
         TItem item,
         string containerKey,
         PartitionKey partitionKey,
@@ -46,8 +52,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public Task<TItem> UpsertItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous upsert operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> UpsertItemAsync<TItem>(
         TItem item,
         string containerKey,
         string partitionKeyValue,
@@ -61,8 +70,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public Task<TItem> UpsertItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous upsert operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> UpsertItemAsync<TItem>(
         TItem item,
         string containerKey,
         PartitionKey partitionKey,
@@ -77,8 +89,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public Task<TItem> ReplaceItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous replace operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> ReplaceItemAsync<TItem>(
         TItem item,
         string itemId,
         string containerKey,
@@ -94,8 +109,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public Task<TItem> ReplaceItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous replace operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> ReplaceItemAsync<TItem>(
         TItem item,
         string itemId,
         string containerKey,
@@ -110,7 +128,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public Task DeleteItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous delete operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> DeleteItemAsync<TItem>(
         string id,
         string containerKey,
         string partitionKeyValue = null!,
@@ -124,7 +146,11 @@ public interface ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public Task DeleteItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous delete operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> DeleteItemAsync<TItem>(
         string id,
         string containerKey,
         PartitionKey partitionKey,

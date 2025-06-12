@@ -24,7 +24,7 @@ public sealed class CosmosDbQueryHandlerTests
     {
         // arrange
         IEnumerable<ContainerRecord>? allItems =
-            await _fixture.Handler.ReadItemsAsync<ContainerRecord>(
+            await _fixture.Handler!.ReadItemsAsync<ContainerRecord>(
                 containerKey: ContainerName,
                 query: "SELECT * FROM c");
 
@@ -53,7 +53,7 @@ public sealed class CosmosDbQueryHandlerTests
     {
         // arrange
         IEnumerable<ContainerRecord> allItems =
-            await _fixture.Handler.ReadItemsAsync<ContainerRecord>(
+            await _fixture.Handler!.ReadItemsAsync<ContainerRecord>(
                 containerKey: ContainerName,
                 query: "SELECT * FROM c");
 
@@ -81,7 +81,7 @@ public sealed class CosmosDbQueryHandlerTests
     public async Task ReadItemsAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResults()
     {
         IEnumerable<ContainerRecord> results =
-            await _fixture.Handler.ReadItemsAsync<ContainerRecord>(
+            await _fixture.Handler!.ReadItemsAsync<ContainerRecord>(
                 containerKey: ContainerName,
                 query: "SELECT * FROM c");
 

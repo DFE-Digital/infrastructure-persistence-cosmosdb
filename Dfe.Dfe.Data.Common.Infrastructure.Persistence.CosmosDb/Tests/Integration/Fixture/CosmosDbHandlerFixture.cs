@@ -75,7 +75,7 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Integration.
 
             // Create the test database and container(s).
             await DbFixture.InitializeAsync();
-            await DbFixture.Database.StartAsync(partitionKeyPath: partitionKeyPath);
+            await DbFixture.Database!.StartAsync(partitionKeyPath: partitionKeyPath);
 
             // Add the test records.
             foreach (ContainerRecord? containerRecord in ContainerRecords)

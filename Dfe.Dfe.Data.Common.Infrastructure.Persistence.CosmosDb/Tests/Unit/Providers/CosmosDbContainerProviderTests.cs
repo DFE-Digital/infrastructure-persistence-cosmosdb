@@ -130,12 +130,12 @@ public class CosmosDbContainerProviderTests
             RepositoryOptionsTestDouble.MockFor(ContainerName, PartitionKey);
 
         Expression<Action<ILogger<CosmosDbContainerProvider>>> logAction =
-            logger =>
-                logger.Log<It.IsAnyType>(LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>());
+           logger =>
+               logger.Log<It.IsAnyType>(LogLevel.Error,
+                   It.IsAny<EventId>(),
+                   It.IsAny<It.IsAnyType>(),
+                   It.IsAny<Exception>(),
+                   It.IsAny<Func<It.IsAnyType, Exception?, string>>());
 
         Mock<ILogger<CosmosDbContainerProvider>> mockLogger = LoggerTestDouble.MockFor(logAction);
 
@@ -168,7 +168,7 @@ public class CosmosDbContainerProviderTests
                     It.IsAny<EventId>(),
                     It.IsAny<It.IsAnyType>(),
                     It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>());
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>());
 
         Mock<ILogger<CosmosDbContainerProvider>> mockLogger = LoggerTestDouble.MockFor(logAction);
 

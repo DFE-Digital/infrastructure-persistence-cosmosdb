@@ -30,8 +30,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created item.</returns>
-    public Task<TItem> CreateItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous create operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> CreateItemAsync<TItem>(
         TItem item,
         string containerKey,
         string partitionKeyValue,
@@ -51,8 +54,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The created item.</returns>
-    public async Task<TItem> CreateItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous create operation.
+    /// </returns>
+    public async Task<CosmosDbCommandHandlerResponse<TItem>> CreateItemAsync<TItem>(
         TItem item,
         string containerKey,
         PartitionKey partitionKey,
@@ -64,14 +70,15 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
 
         Container? container = await _cosmosDbContainerProvider
             .GetContainerAsync(containerKey).ConfigureAwait(false) ??
-            throw new ArgumentNullException(containerKey, "Unable to resolve container with provisioned key.");
+                throw new ArgumentNullException(containerKey,
+                    "Unable to resolve container with provisioned key.");
 
         ItemResponse<TItem>? response =
             await container.CreateItemAsync(
                 item, partitionKey, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        return response.Resource;
+        return CosmosDbCommandHandlerResponse<TItem>.Create(response);
     }
 
     /// <summary>
@@ -82,8 +89,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public Task<TItem> UpsertItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous upsert operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> UpsertItemAsync<TItem>(
         TItem item,
         string containerKey,
         string partitionKeyValue,
@@ -103,8 +113,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public async Task<TItem> UpsertItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous upsert operation.
+    /// </returns>
+    public async Task<CosmosDbCommandHandlerResponse<TItem>> UpsertItemAsync<TItem>(
         TItem item,
         string containerKey,
         PartitionKey partitionKey,
@@ -117,12 +130,17 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
         Container? container =
             await _cosmosDbContainerProvider
              .GetContainerAsync(containerKey).ConfigureAwait(false) ??
-             throw new ArgumentNullException(containerKey, "Unable to resolve container with provisioned key.");
+                throw new ArgumentNullException(containerKey,
+                    "Unable to resolve container with provisioned key.");
 
-        var response = await container.UpsertItemAsync(
-            item, partitionKey, cancellationToken: cancellationToken).ConfigureAwait(false);
+        ItemResponse<TItem> response =
+            await container.UpsertItemAsync(
+                item,
+                partitionKey,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
-        return response.Resource;
+        return CosmosDbCommandHandlerResponse<TItem>.Create(response);
     }
 
     /// <summary>
@@ -134,8 +152,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The partition key value for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public Task<TItem> ReplaceItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous replace operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> ReplaceItemAsync<TItem>(
         TItem item,
         string itemId,
         string containerKey,
@@ -159,8 +180,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The updated item.</returns>
-    public async Task<TItem> ReplaceItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous replace operation.
+    /// </returns>
+    public async Task<CosmosDbCommandHandlerResponse<TItem>> ReplaceItemAsync<TItem>(
         TItem item,
         string itemId,
         string containerKey,
@@ -175,14 +199,19 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
         // Retrieve the Cosmos DB container using the provided key.
         Container? container =
             await _cosmosDbContainerProvider.GetContainerAsync(containerKey).ConfigureAwait(false) ??
-            throw new ArgumentNullException(containerKey, "Unable to resolve container with the provided key.");
+                throw new ArgumentNullException(containerKey,
+                    "Unable to resolve container with the provided key.");
 
         // Perform the item replacement operation in Cosmos DB.
         ItemResponse<TItem> response =
-            await container.ReplaceItemAsync(item, itemId, partitionKey, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await container.ReplaceItemAsync(
+                item,
+                itemId,
+                partitionKey,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
-        // Return the updated resource from the response.
-        return response.Resource;
+        return CosmosDbCommandHandlerResponse<TItem>.Create(response);
     }
 
     /// <summary>
@@ -193,7 +222,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKeyValue">The value of the partition key.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public Task DeleteItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous delete operation.
+    /// </returns>
+    public Task<CosmosDbCommandHandlerResponse<TItem>> DeleteItemAsync<TItem>(
         string id,
         string containerKey,
         string partitionKeyValue = null!,
@@ -213,7 +246,11 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
     /// <param name="containerKey">The key used to resolve the Cosmos DB container.</param>
     /// <param name="partitionKey">The partition key for the item.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public async Task DeleteItemAsync<TItem>(
+    /// <returns>
+    /// A <see cref="CosmosDbCommandHandlerResponse{TItem}"/> instance
+    /// that represents the status of the asynchronous delete operation.
+    /// </returns>
+    public async Task<CosmosDbCommandHandlerResponse<TItem>> DeleteItemAsync<TItem>(
         string id,
         string containerKey,
         PartitionKey partitionKey,
@@ -226,12 +263,17 @@ public sealed class CosmosDbCommandHandler : ICosmosDbCommandHandler
         Container? container =
             await _cosmosDbContainerProvider
              .GetContainerAsync(containerKey).ConfigureAwait(false) ??
-             throw new ArgumentNullException(containerKey, "Unable to resolve container with provisioned key.");
+                throw new ArgumentNullException(containerKey,
+                    "Unable to resolve container with provisioned key.");
 
         if (partitionKey.Equals(default))
             partitionKey = new PartitionKey(id);
 
-        _ = await container.DeleteItemAsync<TItem>(
-            id, partitionKey, cancellationToken: cancellationToken).ConfigureAwait(false);
+        ItemResponse<TItem> response =
+            await container.DeleteItemAsync<TItem>(
+                id, partitionKey, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        return CosmosDbCommandHandlerResponse<TItem>.Create(response);
     }
 }

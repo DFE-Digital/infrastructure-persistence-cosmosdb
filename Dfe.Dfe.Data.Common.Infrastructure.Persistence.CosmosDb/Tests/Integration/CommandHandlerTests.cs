@@ -27,14 +27,14 @@ public sealed class CommandHandlerTests
         string itemKey = Guid.NewGuid().ToString();
 
         // act
-        ContainerRecord? result =
-            await _fixture.Handler.CreateItemAsync<ContainerRecord>(
+        CosmosDbCommandHandlerResponse<ContainerRecord> result =
+            await _fixture.Handler!.CreateItemAsync<ContainerRecord>(
                 item: ContainerRecord.Create(id: itemKey, username: new Bogus.Faker().Name.FullName()),
                 containerKey: ContainerName,
                 partitionKeyValue: itemKey);
 
         // assert
-        result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
+        result.Should().NotBeNull().And.BeAssignableTo<CosmosDbCommandHandlerResponse<ContainerRecord?>>();
 
         await Task.Delay(1000);
     }
@@ -51,16 +51,17 @@ public sealed class CommandHandlerTests
         string updatedUsername = faker.Name.FullName();
 
         // act
-        ContainerRecord? result =
-            await _fixture.Handler.UpsertItemAsync<ContainerRecord>(
+        CosmosDbCommandHandlerResponse<ContainerRecord> result =
+            await _fixture.Handler!.UpsertItemAsync<ContainerRecord>(
                 item: ContainerRecord.Create(id: itemKey, username: updatedUsername),
                 containerKey: ContainerName,
                 partitionKeyValue: itemKey);
 
         // assert
         result.Should().NotBeNull().And.BeAssignableTo<ContainerRecord>();
-        result.username.Should().Be(updatedUsername);
-        result.id.Should().Be(itemKey);
+        result.Item.Should().NotBeNull();
+        result.Item!.username.Should().Be(updatedUsername);
+        result.Item!.id.Should().Be(itemKey);
 
         await Task.Delay(1000);
     }
@@ -76,7 +77,7 @@ public sealed class CommandHandlerTests
         string itemKey = containerRecords!.ElementAt(faker.Random.Number(10, 100)).id;
 
         // assert
-        await _fixture.Handler.DeleteItemAsync<ContainerRecord>(
+        await _fixture.Handler!.DeleteItemAsync<ContainerRecord>(
             id: itemKey,
             containerKey: ContainerName,
             partitionKeyValue: itemKey);

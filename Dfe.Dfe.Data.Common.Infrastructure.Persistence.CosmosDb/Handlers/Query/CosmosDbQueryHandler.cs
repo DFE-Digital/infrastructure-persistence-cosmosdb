@@ -75,9 +75,10 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
         ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
         ArgumentNullException.ThrowIfNullOrEmpty(partitionKeyValue);
 
-        Container container =
+        Container? container =
             await _cosmosDbContainerProvider
-                .GetContainerAsync(containerKey).ConfigureAwait(false);
+                .GetContainerAsync(containerKey).ConfigureAwait(false) ??
+                    throw new ArgumentNullException(containerKey, "Unable to resolve container with provisioned key.");
 
         ItemResponse<TItem> response =
             await container.ReadItemAsync<TItem>(
@@ -125,9 +126,10 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
         ArgumentNullException.ThrowIfNull(selector);
         ArgumentNullException.ThrowIfNull(predicate);
 
-        Container container =
+        Container? container =
             await _cosmosDbContainerProvider
-                .GetContainerAsync(containerKey).ConfigureAwait(false);
+                .GetContainerAsync(containerKey).ConfigureAwait(false) ??
+                    throw new ArgumentNullException(containerKey, "Unable to resolve container with provisioned key.");
 
         return await ReadResultItemsAsync(
             _queryableToFeedIterator.GetFeedIterator(
@@ -165,9 +167,10 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
         ArgumentNullException.ThrowIfNullOrEmpty(containerKey);
         ArgumentNullException.ThrowIfNullOrEmpty(query);
 
-        Container container =
+        Container? container =
             await _cosmosDbContainerProvider
-                .GetContainerAsync(containerKey).ConfigureAwait(false);
+                .GetContainerAsync(containerKey).ConfigureAwait(false) ??
+                    throw new ArgumentNullException(containerKey, "Unable to resolve container with provisioned key.");
 
         return await ReadResultItemsAsync(
             container.GetItemQueryIterator<TItem>(

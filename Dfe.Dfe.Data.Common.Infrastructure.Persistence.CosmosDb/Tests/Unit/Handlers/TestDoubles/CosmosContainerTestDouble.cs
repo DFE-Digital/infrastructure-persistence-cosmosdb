@@ -127,6 +127,25 @@ internal static class CosmosContainerTestDouble
     }
 
     /// <summary>
+    /// Mocks the <see cref="ReplaceItemAsync{T}"/> method for item replacements.
+    /// </summary>
+    /// <typeparam name="TResponse">The expected response type.</typeparam>
+    /// <param name="response">The mocked replace item response.</param>
+    /// <returns>A mock of <see cref="Container"/> supporting replace operations.</returns>
+    public static Mock<Container> MockReplaceItemFor<TResponse>(ItemResponse<TResponse> response)
+    {
+        Mock<Container> containerMock = DefaultMock();
+
+        // Configure mock to return predefined response for UpsertItemAsync.
+        containerMock.Setup(container =>
+            container.ReplaceItemAsync(response.Resource, It.IsAny<string>(), It.IsAny<PartitionKey>(), null, default))
+            .ReturnsAsync(response)
+            .Verifiable();
+
+        return containerMock;
+    }
+
+    /// <summary>
     /// Mocks the <see cref="DeleteItemAsync{T}"/> method for item deletion.
     /// </summary>
     /// <typeparam name="TResponse">The expected response type.</typeparam>
