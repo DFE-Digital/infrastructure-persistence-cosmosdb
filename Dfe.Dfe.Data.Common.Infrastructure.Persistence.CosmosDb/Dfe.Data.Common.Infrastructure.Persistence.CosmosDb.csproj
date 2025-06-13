@@ -22,7 +22,7 @@
 
   <PropertyGroup>
 	<Version>$(VERSION)</Version>
-	<AssemblyVersion>1.0.0</AssemblyVersion>
+	<AssemblyVersion>$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).0</AssemblyVersion>
 	<FileVersion>$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).0</FileVersion>
 	<InformationalVersion>$(VERSION)-$(ShortSha)</InformationalVersion>
   </PropertyGroup>
