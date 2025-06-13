@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DfE.Data.ComponentLibrary.Infrastructure.Persistence.CosmosDb;
 
@@ -30,10 +31,14 @@ public static class CompositionRoot
         }
 
         // Configure repository options using the application configuration.
-        services.AddOptions<RepositoryOptions>()
-            .Configure<IConfiguration>(
-                (settings, configuration) =>
-                    configuration.GetSection(nameof(RepositoryOptions)).Bind(settings));
+        if (!services.Any(
+                (service) => service.ServiceType == typeof(IConfigureOptions<RepositoryOptions>)))
+        {
+            services.AddOptions<RepositoryOptions>()
+                .Configure<IConfiguration>(
+                    (settings, configuration) =>
+                        configuration.GetSection(nameof(RepositoryOptions)).Bind(settings));
+        }
 
         // Register Cosmos DB providers and repositories as singleton services.
         services.TryAddSingleton<ICosmosDbClientProvider, CosmosDbClientProvider>(); // Provides Cosmos DB client instance
