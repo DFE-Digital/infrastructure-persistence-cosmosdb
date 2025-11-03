@@ -1,6 +1,7 @@
 ﻿using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Providers;
 using Microsoft.Azure.Cosmos;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 
@@ -39,6 +40,52 @@ public sealed class CosmosDbQueryHandler : QueryResultReader, ICosmosDbQueryHand
             throw new ArgumentNullException(nameof(queryableToFeedIterator));
         _cosmosDbContainerProvider = cosmosDbContainerProvider ??
             throw new ArgumentNullException(nameof(cosmosDbContainerProvider));
+    }
+
+    /// <summary>
+    /// Attempts to perform a point-read operation for an item within the specified Azure Cosmos DB container.
+    /// This method returns <c>null</c> if the item is not found, rather than throwing an exception.
+    /// Point-reads are optimized for performance and cost, making them preferable to query-based lookups
+    /// when the item ID and partition key are known.
+    /// </summary>
+    /// <typeparam name="TItem">
+    /// The type of the resource to retrieve from the container.
+    /// </typeparam>
+    /// <param name="id">
+    /// The unique identifier of the item to retrieve.
+    /// </param>
+    /// <param name="containerKey">
+    /// The logical key representing the Cosmos DB container.
+    /// </param>
+    /// <param name="partitionKeyValue">
+    /// The partition key value associated with the item.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to monitor for cancellation requests.
+    /// </param>
+    /// <returns>
+    /// A task that resolves to the item of type <typeparamref name="TItem"/> if found; otherwise <c>null</c>.
+    /// </returns>
+    public async Task<TItem?> TryReadItemByIdAsync<TItem>(
+        string id,
+        string containerKey,
+        string partitionKeyValue,
+        CancellationToken cancellationToken = default) where TItem : class
+    {
+        try
+        {
+            TItem value = await ReadItemByIdAsync<TItem>(
+                id,
+                containerKey,
+                partitionKeyValue,
+                cancellationToken);
+
+            return value;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     /// <summary>
