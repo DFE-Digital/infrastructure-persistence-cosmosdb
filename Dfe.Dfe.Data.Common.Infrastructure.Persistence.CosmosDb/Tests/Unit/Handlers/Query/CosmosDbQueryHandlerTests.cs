@@ -5,13 +5,136 @@ using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Qu
 using Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.TestDoubles;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 using Moq;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Handlers.Query;
 
-public class CosmosDbQueryHandlerTests
+public sealed class CosmosDbQueryHandlerTests
 {
+    [Fact]
+    public async Task TryReadItemByIdAsync_Returns_Null_When_CosmosExceptionNotFound_Thrown()
+    {
+        // Arrange
+        Mock<Container> mockContainer =
+            CosmosContainerTestDouble.DefaultMock();
+
+        mockContainer
+            .Setup((container) => container.ReadItemAsync<TestResponseObject>(
+                It.IsAny<string>(), 
+                It.IsAny<PartitionKey>(), 
+                default, 
+                default))
+            .ReturnsAsync(() => throw CosmosExceptionTestDoubles.WithStatusCode(HttpStatusCode.NotFound));
+
+        Mock<ICosmosDbContainerProvider> mockContainerProvider =
+            ContainerProviderTestDouble.MockFor(mockContainer.Object);
+        
+        Mock<IQueryableToFeedIterator> mockQueryableToFeedIterator =
+            QueryableToFeedIteratorTestDouble.MockFor(
+                FeedIteratorTestDouble.DefaultMock<TestResponseObject>().Object);
+
+        CosmosDbQueryHandler queryHandler =
+            new(mockQueryableToFeedIterator.Object, mockContainerProvider.Object);
+
+        // Act
+        TestResponseObject? result =
+            await queryHandler.TryReadItemByIdAsync<TestResponseObject>("1", "containerKey", "partitionKey");
+
+        // Assert
+        Assert.Null(result);
+
+        // Ensure the correct two calls were made to the mocked container.
+        mockContainer.Verify(container =>
+            container.ReadItemAsync<TestResponseObject>(
+                It.IsAny<string>(), It.IsAny<PartitionKey>(), default, default), Times.Once);
+
+        // Ensure the correct single call was made to the mocked container provider.
+        mockContainerProvider.Verify(containerProvider =>
+            containerProvider.GetContainerAsync("containerKey"), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryReadItemByIdAsync_Throws_When_CosmosException_ThatIsNot_NotFound()
+    {
+        // Arrange
+        Mock<Container> mockContainer =
+            CosmosContainerTestDouble.DefaultMock();
+
+        mockContainer
+            .Setup((container) => container.ReadItemAsync<TestResponseObject>(
+                It.IsAny<string>(), 
+                It.IsAny<PartitionKey>(), 
+                default, 
+                default))
+            .ReturnsAsync(() => throw CosmosExceptionTestDoubles.WithStatusCode(HttpStatusCode.OK));
+
+        Mock<ICosmosDbContainerProvider> mockContainerProvider =
+            ContainerProviderTestDouble.MockFor(mockContainer.Object);
+
+        Mock<IQueryableToFeedIterator> mockQueryableToFeedIterator =
+            QueryableToFeedIteratorTestDouble.MockFor(
+                FeedIteratorTestDouble.DefaultMock<TestResponseObject>().Object);
+
+        CosmosDbQueryHandler queryHandler =
+            new(mockQueryableToFeedIterator.Object, mockContainerProvider.Object);
+
+        // Act
+        Func<Task<TestResponseObject?>> handle = () => queryHandler.TryReadItemByIdAsync<TestResponseObject>("1", "containerKey", "partitionKey");
+
+        // Assert
+        await Assert.ThrowsAsync<CosmosException>(handle);
+
+        // Ensure the correct two calls were made to the mocked container.
+        mockContainer.Verify(container =>
+            container.ReadItemAsync<TestResponseObject>(
+                It.IsAny<string>(), It.IsAny<PartitionKey>(), default, default), Times.Once);
+
+        // Ensure the correct single call was made to the mocked container provider.
+        mockContainerProvider.Verify(containerProvider =>
+            containerProvider.GetContainerAsync("containerKey"), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryReadItemByIdAsync_Returns_ExpectedItem()
+    {
+        // Arrange
+        ItemResponse<TestResponseObject> mockItemResponse =
+            ItemResponseTestDouble.MockFor(TestResponseObject.Create(id: "1", name: "TestItem"));
+
+        Mock<Container> mockContainer =
+            CosmosContainerTestDouble.MockFor(mockItemResponse);
+
+        Mock<ICosmosDbContainerProvider> mockContainerProvider =
+            ContainerProviderTestDouble.MockFor(mockContainer.Object);
+
+        Mock<IQueryableToFeedIterator> mockQueryableToFeedIterator =
+            QueryableToFeedIteratorTestDouble.MockFor(
+                FeedIteratorTestDouble.DefaultMock<TestResponseObject>().Object);
+
+        CosmosDbQueryHandler queryHandler =
+            new(mockQueryableToFeedIterator.Object, mockContainerProvider.Object);
+
+        // Act
+        TestResponseObject? result = await queryHandler.TryReadItemByIdAsync<TestResponseObject>("1", "containerKey", "partitionKey");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("1", result.Id);
+        Assert.Equal("TestItem", result.Name);
+
+        // Ensure the correct two calls were made to the mocked container.
+        mockContainer.Verify(container =>
+            container.ReadItemAsync<TestResponseObject>(
+                It.IsAny<string>(), It.IsAny<PartitionKey>(), default, default), Times.Once);
+
+        // Ensure the correct single call was made to the mocked container provider.
+        mockContainerProvider.Verify(containerProvider =>
+            containerProvider.GetContainerAsync("containerKey"), Times.Once);
+    }
+
     [Fact]
     public async Task ReadItemByIdAsync_ReturnsExpectedItem()
     {

@@ -15,6 +15,36 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Handlers.Query;
 public interface ICosmosDbQueryHandler
 {
     /// <summary>
+    /// Attempts to perform a point-read operation for an item within the specified Azure Cosmos DB container.
+    /// This method returns <c>null</c> if the item is not found, rather than throwing an exception.
+    /// Point-reads are optimized for performance and cost, making them preferable to query-based lookups
+    /// when the item ID and partition key are known.
+    /// </summary>
+    /// <typeparam name="TItem">
+    /// The type of the resource to retrieve from the container.
+    /// </typeparam>
+    /// <param name="id">
+    /// The unique identifier of the item to retrieve.
+    /// </param>
+    /// <param name="containerKey">
+    /// The logical key representing the Cosmos DB container.
+    /// </param>
+    /// <param name="partitionKeyValue">
+    /// The partition key value associated with the item.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to monitor for cancellation requests.
+    /// </param>
+    /// <returns>
+    /// A task that resolves to the item of type <typeparamref name="TItem"/> if found; otherwise <c>null</c>.
+    /// </returns>
+    Task<TItem?> TryReadItemByIdAsync<TItem>(
+        string id,
+        string containerKey,
+        string partitionKeyValue,
+        CancellationToken cancellationToken = default) where TItem : class;
+
+    /// <summary>
     /// Performs a point-read for an item within the specified Azure Cosmos db container, as an asynchronous operation.
     /// The point read is a key/value lookup on a single item ID and partition key, and offers increased performance
     /// and reduced costs per RU in comparison to the more traditional query-led approach.

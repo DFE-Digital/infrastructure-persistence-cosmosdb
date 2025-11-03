@@ -20,6 +20,36 @@ public sealed class CosmosDbQueryHandlerTests
     private string ContainerName { get; }
 
     [Fact]
+    public async Task TryReadItemByIdAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResult()
+    {
+        // arrange
+        IEnumerable<ContainerRecord>? allItems =
+            await _fixture.Handler!.ReadItemsAsync<ContainerRecord>(
+                containerKey: ContainerName,
+                query: "SELECT * FROM c");
+
+        if (!allItems.Any())
+        {
+            Assert.Fail($"{ContainerName} does not contain any items to read by ID.");
+        }
+
+        var itemId = allItems.First().id;
+
+        // act
+        ContainerRecord? result =
+            await _fixture.Handler.TryReadItemByIdAsync<ContainerRecord>(
+                id: itemId,
+                containerKey: ContainerName,
+                partitionKeyValue: itemId);
+
+        // assert
+        result.Should().NotBeNull()
+            .And.BeAssignableTo<ContainerRecord>();
+
+        await Task.Delay(1000);
+    }
+
+    [Fact]
     public async Task ReadItemByIdAsync_ContainerRecordsAndValidQuery_ReturnsCorrectResult()
     {
         // arrange
