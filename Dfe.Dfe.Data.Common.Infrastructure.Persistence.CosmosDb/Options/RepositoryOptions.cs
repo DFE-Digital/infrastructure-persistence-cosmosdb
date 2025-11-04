@@ -37,5 +37,5 @@ public sealed class RepositoryOptions
     /// Represents a collection of container configurations.
     /// </summary>
     [JsonProperty(nameof(Containers))]
-    public List<Dictionary<string, ContainerOptions>>? Containers { get; set; }
+    public Dictionary<string, ContainerOptions>? Containers { get; set; }
 }

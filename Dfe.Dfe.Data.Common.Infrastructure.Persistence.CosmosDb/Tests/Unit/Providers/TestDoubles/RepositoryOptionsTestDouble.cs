@@ -39,9 +39,10 @@ internal class RepositoryOptionsTestDouble
     /// <param name="partitionKey">The partition key for the container.</param>
     /// <returns>A RepositoryOptions object with the specified container and partition key.</returns>
     public static RepositoryOptions CreateRepositoryOptionsStub(string containerName, string partitionKey) =>
-        new(){
+        new()
+        {
             // Initializing the Containers property with a list of dictionaries
-            Containers = [
+            Containers =
                 // Adding a dictionary with the container name as the key and ContainerOptions as the value
                 new Dictionary<string, ContainerOptions> {
                     { containerName,
@@ -51,6 +52,5 @@ internal class RepositoryOptionsTestDouble
                         }
                     }
                 }
-            ]
         };
 }
