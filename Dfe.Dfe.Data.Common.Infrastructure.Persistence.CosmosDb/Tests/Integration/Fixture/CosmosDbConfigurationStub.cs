@@ -36,7 +36,7 @@ public static class CosmosDbConfigurationStub
             { "RepositoryOptions:PrimaryKey", PrimaryKey },
             { "RepositoryOptions:DatabaseId", DatabaseId },
             { "RepositoryOptions:ConnectionMode", "1" },
-            { $"RepositoryOptions:Containers:0:{containerName}:ContainerName", containerName },
-            { $"RepositoryOptions:Containers:0:{containerName}:PartitionKey", PartitionKey }
+            { $"RepositoryOptions:Containers:{containerName}:ContainerName", containerName },
+            { $"RepositoryOptions:Containers:{containerName}:PartitionKey", PartitionKey }
         };
 }

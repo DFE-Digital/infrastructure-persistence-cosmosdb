@@ -6,6 +6,22 @@ namespace Dfe.Data.Common.Infrastructure.Persistence.CosmosDb.Tests.Unit.Options
 public class RepositoryOptionsExtensionsTests
 {
     [Fact]
+    public void GetContainerOptions_Should_ThrowNull_When_ContainersIsNull()
+    {
+        // Arrange
+        var repositoryOptions = new RepositoryOptions
+        {
+            Containers = null
+        };
+
+        const string containerKey = "TestContainer";
+
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() =>
+            repositoryOptions.GetContainerOptions(containerKey));
+    }
+
+    [Fact]
     public void GetContainerOptions_ShouldReturnContainerOptions_WhenContainerExists()
     {
         // Arrange
@@ -15,11 +31,10 @@ public class RepositoryOptionsExtensionsTests
 
         var repositoryOptions = new RepositoryOptions
         {
-            Containers = [
-                new Dictionary<string, ContainerOptions>{
+            Containers = new Dictionary<string, ContainerOptions>{
                     { containerKey, expectedContainerOptions }
                 }
-            ]
+
         };
 
         // Act
@@ -37,7 +52,7 @@ public class RepositoryOptionsExtensionsTests
         // Arrange
         var repositoryOptions = new RepositoryOptions
         {
-            Containers = [
+            Containers = 
                 new Dictionary<string, ContainerOptions> {
                     { "ExistingContainer",
                         new ContainerOptions {
@@ -45,7 +60,6 @@ public class RepositoryOptionsExtensionsTests
                         }
                     }
                 }
-            ]
         };
 
         const string missingContainerKey = "MissingContainer";
@@ -54,48 +68,6 @@ public class RepositoryOptionsExtensionsTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
             repositoryOptions.GetContainerOptions(missingContainerKey));
 
-        Assert.Contains($"Container with key: {missingContainerKey} not configured in options.", exception.Message);
-    }
-
-    [Fact]
-    public void TryGetContainerOptionsDictionary_ShouldReturnContainerDictionary_WhenContainerExists()
-    {
-        // Arrange
-        const string containerKey = "TestContainer";
-        var expectedContainerOptions = new Dictionary<string, ContainerOptions>
-        {
-            { containerKey, new ContainerOptions { ContainerName = "TestContainer", PartitionKey = "/id" } }
-        };
-
-        var repositoryOptions = new RepositoryOptions
-        {
-            Containers = [expectedContainerOptions]
-        };
-
-        // Act
-        var result = repositoryOptions.TryGetContainerOptionsDictionary(containerKey);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.ContainsKey(containerKey));
-    }
-
-    [Fact]
-    public void TryGetContainerOptionsDictionary_ShouldThrowInvalidOperationException_WhenContainerDoesNotExist()
-    {
-        // Arrange
-        var repositoryOptions = new RepositoryOptions
-        {
-            Containers = []
-        };
-
-        const string missingContainerKey = "MissingContainer";
-
-        // Act & Assert
-        var exception =
-            Assert.Throws<InvalidOperationException>(() =>
-                repositoryOptions.TryGetContainerOptionsDictionary(missingContainerKey));
-
-        Assert.Contains($"Container with key: {missingContainerKey} not configured in options.", exception.Message);
+        Assert.Contains($"Container dictionary options with container key: {missingContainerKey} not configured in options.", exception.Message);
     }
 }
