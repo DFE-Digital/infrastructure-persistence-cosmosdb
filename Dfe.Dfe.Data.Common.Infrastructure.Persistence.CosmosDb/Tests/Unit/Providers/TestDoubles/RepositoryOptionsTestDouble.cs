@@ -41,7 +41,7 @@ internal class RepositoryOptionsTestDouble
     public static RepositoryOptions CreateRepositoryOptionsStub(string containerName, string partitionKey) =>
         new()
         {
-            // Initializing the Containers property with a list of dictionaries
+            // Initializing the Containers property with a Dictionary
             Containers =
                 // Adding a dictionary with the container name as the key and ContainerOptions as the value
                 new Dictionary<string, ContainerOptions> {
